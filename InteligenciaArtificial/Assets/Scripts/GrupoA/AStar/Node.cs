@@ -7,15 +7,17 @@ using System.Threading.Tasks;
 
 namespace Assets.Scripts.GrupoA.AStar
 {
-    internal class Node
+    public class Node
     {
-        public CellInfo celdaInfo;
+        public CellInfo info;
+        public Node padre;
+        public int steps;
 
-        public Node() {
-            
+        public Node(CellInfo info, int steps = 0, Node padre = null)
+        {
+            this.info = info;
+            this.padre = padre;
+            this.steps = steps + 1;
         }
-
-        public CellInfo GetCellInfo(CellInfo celdaInfo) 
-        { return celdaInfo; }
     }
 }

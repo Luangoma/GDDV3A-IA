@@ -6,7 +6,8 @@ using Navigation.World;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-namespace Navigation.Algorithms.AStar
+
+namespace Assets.Scripts.GrupoA.AStar
 { 
     public class AStar : INavigationAlgorithm
     {
@@ -32,41 +33,55 @@ namespace Navigation.Algorithms.AStar
 
         public CellInfo[] GetPath(CellInfo startNode, CellInfo targetNode)
         {
-            throw new NotImplementedException();
-        }
-
-        public Node SpaceStateSearch(Node initialState)
-        {
-            Node current = new Node();
-            openList.Add(initialState);
-            do
-            {
+            Node current = new Node(startNode);
+            openList.Add(current);
+            while ((openList != null)) { 
                 current = openList.First();
-                if (current.GetCellInfo().Type = CellInfo.CellType.Exit)
+                openList.RemoveAt(0);
+                if (startNode.Type == targetNode.Type)
                 {
-                    return current;
+                    CellInfo[] a = { startNode };
+                    return a;
                 }
                 else
                 {
-                    sucesors = expand(current);
-                    foreach (CellInfo sucesor in sucesors)
+                    sucesors = Expand(current);
+                    foreach (Node sucesor in sucesors)
                     {
                         openList.Add(sucesor);
                     }
                 }
-            } while ((openList != null));
+            }
             return null;
         }
-        public Node[] expand(Node nodeToExpand)
+
+        public Node[] Expand(Node nodeToExpand)
         {
-            Node[] nodes = null;
-            int i = 0;
-            foreach (Node newNode in nodeToExpand)
+            List<Node> nodes = new List<Node>();
+            #region PosicionesAExpandir
+            CellInfo[] cells = { _world[nodeToExpand.info.x+1, nodeToExpand.info.y],
+                _world[nodeToExpand.info.x, nodeToExpand.info.y+1],
+                _world[nodeToExpand.info.x, nodeToExpand.info.y-1],
+                _world[nodeToExpand.info.x-1, nodeToExpand.info.y]
+            };
+            if (cells[0].Walkable)
             {
-                nodes[i] = newNode;
-                i++;
+                nodes.Add(new Node(cells[0], 1, nodeToExpand));
             }
-            return nodes;
+            if (cells[1].Walkable)
+            {
+                nodes.Add(new Node(cells[1], 1, nodeToExpand));
+            }
+            if (cells[2].Walkable)
+            {
+                nodes.Add(new Node(cells[2], 1, nodeToExpand));
+            }
+            if (cells[3].Walkable)
+            {
+                nodes.Add(new Node(cells[3], 1, nodeToExpand));
+            }
+            #endregion
+            return nodes.ToArray();
         }
     }
 }
