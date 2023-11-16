@@ -1,0 +1,9 @@
+- Como utilizar el metodo sort() de una lista para ordenar los nodos por un valor heuristico
+
+- (basic) Como hacer que el agente el algoritmo 
+
+- Comprobar los "//?//" del codigo
+
+- Como codificar el GetPath
+
+- Como podria ser un encabezado de un metodo SSS (SpaceStateSearch)

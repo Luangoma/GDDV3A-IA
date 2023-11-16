@@ -8,7 +8,7 @@ using UnityEngine;
 
 
 namespace Assets.Scripts.GrupoA.AStar
-{ 
+{
     public class AStar : INavigationAlgorithm
     {
         public enum Directions
@@ -21,67 +21,57 @@ namespace Assets.Scripts.GrupoA.AStar
         }
 
         private WorldInfo _world;
-        private Directions _currentDirection = Directions.None;
-        private int stepCount = 0;
+        private List<Directions> _currentDirection;
         private List<Node> openList;
-        private Node[] sucesors;
 
         public void Initialize(WorldInfo worldInfo, INavigationAlgorithm.AllowedMovements allowedMovements)
         {
             _world = worldInfo;
         }
 
-        public CellInfo[] GetPath(CellInfo startNode, CellInfo targetNode)
+        public Node GetNodePath(CellInfo startNode, CellInfo targetNode)
         {
             Node current = new Node(startNode);
             openList.Add(current);
-            while ((openList != null)) { 
+
+            while (openList.Count > 0)
+            {
                 current = openList.First();
                 openList.RemoveAt(0);
-                if (startNode.Type == targetNode.Type)
+                if (startNode.x == targetNode.x && startNode.y == targetNode.y)
                 {
-                    CellInfo[] a = { startNode };
-                    return a;
+                    //?// COMO DEVOLVER EL ESTADO ACTUAL
+                    return current;
                 }
                 else
                 {
-                    sucesors = Expand(current);
+                    Node[] sucesors = current.Expand(_world);
                     foreach (Node sucesor in sucesors)
                     {
+                        sucesor.padre = current;
                         openList.Add(sucesor);
+                        //?// CONSULTAR COMO SE PUEDE ORDENAR POR UN VALOR DE UNA VARIABLE
+                        openList.Sort();
                     }
                 }
             }
             return null;
         }
-
-        public Node[] Expand(Node nodeToExpand)
+        /**/
+        public CellInfo[] GetPath(CellInfo startNode, CellInfo targetNode)
         {
-            List<Node> nodes = new List<Node>();
-            #region PosicionesAExpandir
-            CellInfo[] cells = { _world[nodeToExpand.info.x+1, nodeToExpand.info.y],
-                _world[nodeToExpand.info.x, nodeToExpand.info.y+1],
-                _world[nodeToExpand.info.x, nodeToExpand.info.y-1],
-                _world[nodeToExpand.info.x-1, nodeToExpand.info.y]
-            };
-            if (cells[0].Walkable)
+            Node current = GetNodePath(startNode, targetNode);
+
+            List<CellInfo> temporal = new List<CellInfo>();
+            while (current != null)
             {
-                nodes.Add(new Node(cells[0], 1, nodeToExpand));
+                temporal.Add(current.info);
+                current = current.padre;
             }
-            if (cells[1].Walkable)
-            {
-                nodes.Add(new Node(cells[1], 1, nodeToExpand));
-            }
-            if (cells[2].Walkable)
-            {
-                nodes.Add(new Node(cells[2], 1, nodeToExpand));
-            }
-            if (cells[3].Walkable)
-            {
-                nodes.Add(new Node(cells[3], 1, nodeToExpand));
-            }
-            #endregion
-            return nodes.ToArray();
+            return temporal.ToArray();
         }
+        //*/
+
+
     }
 }
