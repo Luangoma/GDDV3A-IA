@@ -1,6 +1,7 @@
-InteligenciaArtificial\Library\
-InteligenciaArtificial\obj\
-InteligenciaArtificial\Logs\
-InteligenciaArtificial\UserSettings\
-InteligenciaArtificial\.vs\
-InteligenciaArtificial\*.vsconfig
+InteligenciaArtificial/Library
+InteligenciaArtificial/obj
+InteligenciaArtificial/Logs
+InteligenciaArtificial/Temp
+InteligenciaArtificial/UserSettings
+InteligenciaArtificial/.vs
+InteligenciaArtificial/.vsconfig

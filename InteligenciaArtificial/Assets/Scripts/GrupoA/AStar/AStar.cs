@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Navigation.Interfaces;
 using Navigation.World;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -11,18 +12,9 @@ namespace Assets.Scripts.GrupoA.AStar
 {
     public class AStar : INavigationAlgorithm
     {
-        public enum Directions
-        {
-            None,
-            Up,
-            Right,
-            Down,
-            Left
-        }
-
         private WorldInfo _world;
-        private List<Directions> _currentDirection;
-        private List<Node> openList;
+        private List<Node> openList = new List<Node>();
+        private List<Node> closeList = new List<Node>();
 
         public void Initialize(WorldInfo worldInfo, INavigationAlgorithm.AllowedMovements allowedMovements)
         {
@@ -38,21 +30,25 @@ namespace Assets.Scripts.GrupoA.AStar
             {
                 current = openList.First();
                 openList.RemoveAt(0);
-                if (startNode.x == targetNode.x && startNode.y == targetNode.y)
+                if (current.info.x == targetNode.x && current.info.y == targetNode.y)
                 {
                     //?// COMO DEVOLVER EL ESTADO ACTUAL
                     return current;
                 }
                 else
                 {
+
                     Node[] sucesors = current.Expand(_world);
                     foreach (Node sucesor in sucesors)
                     {
-                        sucesor.padre = current;
-                        openList.Add(sucesor);
-                        //?// CONSULTAR COMO SE PUEDE ORDENAR POR UN VALOR DE UNA VARIABLE
-                        openList.Sort();
+                        if (!visited(sucesor))
+                        {
+                            openList.Add(sucesor);
+                            closeList.Add(sucesor);
+                            //?// CONSULTAR COMO SE PUEDE ORDENAR POR UN VALOR DE UNA VARIABLE
+                        }
                     }
+                    openList.Sort();
                 }
             }
             return null;
@@ -68,10 +64,21 @@ namespace Assets.Scripts.GrupoA.AStar
                 temporal.Add(current.info);
                 current = current.padre;
             }
+            temporal.Reverse();
             return temporal.ToArray();
         }
-        //*/
+        //*/ 
 
-
+        public bool visited(Node node)
+        {
+            foreach (Node lista in closeList)
+            {
+                if (lista.EqualsNode(node))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

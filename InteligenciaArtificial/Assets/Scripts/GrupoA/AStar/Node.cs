@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Navigation.World.CellInfo;
 
 namespace Assets.Scripts.GrupoA.AStar
 {
@@ -11,10 +12,10 @@ namespace Assets.Scripts.GrupoA.AStar
     {
         public CellInfo info;
         public Node padre;
-        public int G_Coste;
-        public int H_Heuristica;
-        public int Funcion_Heuristica;
-        public Node(CellInfo info, int G_Coste = 0, Node padre = null)
+        public float G_Coste;
+        public float H_Heuristica;
+        public float Funcion_Heuristica;
+        public Node(CellInfo info, float G_Coste = 0, Node padre = null)
         {
             this.info = info;
             this.padre = padre;
@@ -50,13 +51,14 @@ namespace Assets.Scripts.GrupoA.AStar
             }
             return nodes.ToArray();
         }
-        public int D_Manhattan(Node targetNode)
+        public float D_Manhattan(Node targetNode)
         {
             return (Math.Abs(targetNode.info.x - this.info.x) + Math.Abs(targetNode.info.y - this.info.y));
         }
-        public int calculateHeuristic(Node targetNode)
+        public float calculateHeuristic(Node targetNode)
         {
-            H_Heuristica = D_Manhattan(targetNode);
+            //H_Heuristica = D_Manhattan(targetNode);
+            H_Heuristica = this.info.Distance(targetNode.info, DistanceType.Euclidean);
             Funcion_Heuristica = G_Coste + H_Heuristica;
             return Funcion_Heuristica;
         }
@@ -71,6 +73,10 @@ namespace Assets.Scripts.GrupoA.AStar
         {
             if (other == null) return false;
             return this.Funcion_Heuristica == other.Funcion_Heuristica;
+        }
+        public bool EqualsNode(Node other)
+        {
+            return this.info.x == other.info.x && this.info.y == other.info.y;
         }
     }
 }
