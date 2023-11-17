@@ -27,8 +27,9 @@ namespace Assets.Scripts.GrupoA.AStar
         public Node[] Expand(WorldInfo mundo)
         {
             List<Node> nodes = new List<Node>();
-            CellInfo[] cells = { mundo[this.info.x+1, this.info.y],
+            CellInfo[] cells = {
                 mundo[this.info.x, this.info.y+1],
+                mundo[this.info.x+1, this.info.y],
                 mundo[this.info.x, this.info.y-1],
                 mundo[this.info.x-1, this.info.y]
             };
@@ -57,8 +58,8 @@ namespace Assets.Scripts.GrupoA.AStar
         }
         public float calculateHeuristic(Node targetNode)
         {
-            //H_Heuristica = D_Manhattan(targetNode);
-            H_Heuristica = this.info.Distance(targetNode.info, DistanceType.Euclidean);
+            H_Heuristica = D_Manhattan(targetNode);
+            //H_Heuristica = this.info.Distance(targetNode.info, DistanceType.Euclidean);
             Funcion_Heuristica = G_Coste + H_Heuristica;
             return Funcion_Heuristica;
         }

@@ -23,6 +23,9 @@ namespace Assets.Scripts.GrupoA.AStar
 
         public Node GetNodePath(CellInfo startNode, CellInfo targetNode)
         {
+            openList.Clear();
+            closeList.Clear();
+
             Node current = new Node(startNode);
             openList.Add(current);
 
@@ -30,6 +33,7 @@ namespace Assets.Scripts.GrupoA.AStar
             {
                 current = openList.First();
                 openList.RemoveAt(0);
+                closeList.Add(current);
                 if (current.info.x == targetNode.x && current.info.y == targetNode.y)
                 {
                     //?// COMO DEVOLVER EL ESTADO ACTUAL
@@ -37,14 +41,12 @@ namespace Assets.Scripts.GrupoA.AStar
                 }
                 else
                 {
-
                     Node[] sucesors = current.Expand(_world);
                     foreach (Node sucesor in sucesors)
                     {
                         if (!visited(sucesor))
                         {
                             openList.Add(sucesor);
-                            closeList.Add(sucesor);
                             //?// CONSULTAR COMO SE PUEDE ORDENAR POR UN VALOR DE UNA VARIABLE
                         }
                     }

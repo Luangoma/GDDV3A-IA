@@ -69,6 +69,7 @@
     <Compile Include="Assets\Scripts\Navigation\Agent\BaseSearchAgent.cs" />
     <Compile Include="Assets\Scripts\Components\NavigationMovement.cs" />
     <Compile Include="Assets\External\Supercyan Character Pack Free Sample\Scripts\FreeCameraLogic.cs" />
+    <Compile Include="Assets\Scripts\GrupoA\SubobjectiveSearchAgent.cs" />
     <Compile Include="Assets\Scripts\GrupoA\AStar\AStar.cs" />
     <Compile Include="Assets\External\Supercyan Character Pack Zombie Sample\Scripts\ZombieFree.cs" />
     <Compile Include="Assets\Scripts\Navigation\World\WorldInfo.cs" />
@@ -85,7 +86,6 @@
     <None Include="Assets\TextMesh Pro\Shaders\TMPro.cginc" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_SDF-Mobile Overlay.shader" />
     <None Include="Assets\External\Supercyan Character Pack Zombie Sample\Shaders\Legacy\CelShader.shader" />
-    <None Include="Assets\Scripts\GrupoA\DUDAS.txt" />
     <None Include="Assets\TextMesh Pro\Shaders\TMP_Bitmap.shader" />
     <None Include="Assets\External\Supercyan Character Pack Free Sample\Shaders\Legacy\CelShader.shader" />
     <None Include="Assets\TextMesh Pro\Shaders\TMPro_Mobile.cginc" />
