@@ -27,6 +27,7 @@ namespace Assets.Scripts.GrupoA.AStar
             closeList.Clear();
 
             Node current = new Node(startNode);
+            Node target = new Node(targetNode);
             openList.Add(current);
 
             while (openList.Count > 0)
@@ -34,14 +35,13 @@ namespace Assets.Scripts.GrupoA.AStar
                 current = openList.First();
                 openList.RemoveAt(0);
                 closeList.Add(current);
-                if (current.info.x == targetNode.x && current.info.y == targetNode.y)
+                if (current.info.x == target.info.x && current.info.y == target.info.y)
                 {
-                    //?// COMO DEVOLVER EL ESTADO ACTUAL
                     return current;
                 }
                 else
                 {
-                    Node[] sucesors = current.Expand(_world);
+                    Node[] sucesors = Expand(current, target);
                     foreach (Node sucesor in sucesors)
                     {
                         if (!visited(sucesor))
@@ -55,7 +55,6 @@ namespace Assets.Scripts.GrupoA.AStar
             }
             return null;
         }
-        /**/
         public CellInfo[] GetPath(CellInfo startNode, CellInfo targetNode)
         {
             Node current = GetNodePath(startNode, targetNode);
@@ -69,8 +68,34 @@ namespace Assets.Scripts.GrupoA.AStar
             temporal.Reverse();
             return temporal.ToArray();
         }
-        //*/ 
-
+        public Node[] Expand(Node padre, Node targetNode)
+        {
+            List<Node> nodes = new List<Node>();
+            CellInfo[] cells = {
+                _world[padre.info.x, padre.info.y+1],
+                _world[padre.info.x+1, padre.info.y],
+                _world[padre.info.x, padre.info.y-1],
+                _world[padre.info.x-1, padre.info.y]
+            };
+            if (cells[0].Walkable)
+            {
+                nodes.Add(new Node(cells[0], padre.G_Coste, padre));
+            }
+            if (cells[1].Walkable)
+            {
+                nodes.Add(new Node(cells[1], padre.G_Coste, padre));
+            }
+            if (cells[2].Walkable)
+            {
+                nodes.Add(new Node(cells[2], padre.G_Coste, padre));
+            }
+            if (cells[3].Walkable)
+            {
+                nodes.Add(new Node(cells[3], padre.G_Coste, padre));
+            }
+            nodes.ForEach(node => { node.calculateHeuristic(targetNode); });
+            return nodes.ToArray();
+        }
         public bool visited(Node node)
         {
             foreach (Node lista in closeList)

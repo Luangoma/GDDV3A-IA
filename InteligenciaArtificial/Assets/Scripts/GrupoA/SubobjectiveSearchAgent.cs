@@ -80,8 +80,13 @@ namespace Navigation.Agent
         private CellInfo[] GetDestinations()
         {
             List<CellInfo> targets = new List<CellInfo>();
-            //targets.Add(_worldInfo.Targets);
+            CellInfo[] obejtivos = _worldInfo.Targets;
+            foreach (var item in obejtivos)
+            {
+                targets.Add(item);
+            }
             targets.Add(_worldInfo.Exit);
+            //targets.Add(_worldInfo.Targets);
             return targets.ToArray();
         }
     }

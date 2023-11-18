@@ -15,6 +15,7 @@ namespace Assets.Scripts.GrupoA.AStar
         public float G_Coste;
         public float H_Heuristica;
         public float Funcion_Heuristica;
+
         public Node(CellInfo info, float G_Coste = 0, Node padre = null)
         {
             this.info = info;
@@ -24,34 +25,6 @@ namespace Assets.Scripts.GrupoA.AStar
             this.Funcion_Heuristica = 0;
         }
 
-        public Node[] Expand(WorldInfo mundo)
-        {
-            List<Node> nodes = new List<Node>();
-            CellInfo[] cells = {
-                mundo[this.info.x, this.info.y+1],
-                mundo[this.info.x+1, this.info.y],
-                mundo[this.info.x, this.info.y-1],
-                mundo[this.info.x-1, this.info.y]
-            };
-
-            if (cells[0].Walkable)
-            {
-                nodes.Add(new Node(cells[0], this.G_Coste, this));
-            }
-            if (cells[1].Walkable)
-            {
-                nodes.Add(new Node(cells[1], this.G_Coste, this));
-            }
-            if (cells[2].Walkable)
-            {
-                nodes.Add(new Node(cells[2], this.G_Coste, this));
-            }
-            if (cells[3].Walkable)
-            {
-                nodes.Add(new Node(cells[3], this.G_Coste, this));
-            }
-            return nodes.ToArray();
-        }
         public float D_Manhattan(Node targetNode)
         {
             return (Math.Abs(targetNode.info.x - this.info.x) + Math.Abs(targetNode.info.y - this.info.y));
@@ -63,7 +36,6 @@ namespace Assets.Scripts.GrupoA.AStar
             Funcion_Heuristica = G_Coste + H_Heuristica;
             return Funcion_Heuristica;
         }
-
         public int CompareTo(Node other)
         {
             if (other == null) return 1;
