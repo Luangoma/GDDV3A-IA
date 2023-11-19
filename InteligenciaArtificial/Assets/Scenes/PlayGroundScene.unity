@@ -4996,7 +4996,7 @@ PrefabInstance:
     - target: {fileID: 730623413240138495, guid: b5edc09c705c52d449716a4e5ef0c91d,
         type: 3}
       propertyPath: navigationAgent
-      value: Navigation.Agent.BaseSearchAgent
+      value: Navigation.Agent.SobobjectiveSearchAgent
       objectReference: {fileID: 0}
     - target: {fileID: 730623413240138495, guid: b5edc09c705c52d449716a4e5ef0c91d,
         type: 3}

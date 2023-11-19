@@ -23,6 +23,7 @@
 #endregion
 
 using System.Collections.Generic;
+using Assets.Scripts.GrupoA.AStar;
 using Navigation.Interfaces;
 using Navigation.World;
 using UnityEngine;
@@ -63,6 +64,11 @@ namespace Navigation.Agent
 
             if (_path == null || _path.Count == 0)
             {
+                if (NumberOfDestinations > 0)
+                {
+                    NumberOfDestinations--;
+                    CurrentObjective = _objectives[NumberOfDestinations];
+                }
                 CellInfo[] path = _navigationAlgorithm.GetPath(_origin, CurrentObjective);
                 _path = new Queue<CellInfo>(path);
             }
@@ -79,15 +85,22 @@ namespace Navigation.Agent
 
         private CellInfo[] GetDestinations()
         {
-            List<CellInfo> targets = new List<CellInfo>();
-            CellInfo[] obejtivos = _worldInfo.Targets;
-            foreach (var item in obejtivos)
+            List<Node> targets = new List<Node>();
+            CellInfo[] objetivos = _worldInfo.Targets;
+            Node exit = new Node(_worldInfo.Exit);
+            foreach (var item in objetivos)
             {
-                targets.Add(item);
+                Node tmp = new Node(item);
+                //tmp.calculateHeuristic(exit);
+                tmp.calculateHeuristic(new Node(_origin));
+                targets.Add(tmp);
             }
-            targets.Add(_worldInfo.Exit);
-            //targets.Add(_worldInfo.Targets);
-            return targets.ToArray();
+            targets.Sort();
+            targets.Add(exit);
+            targets.Reverse();
+            List<CellInfo> destinations = new List<CellInfo>();
+            foreach (var item in targets) { destinations.Add(item.info); }
+            return destinations.ToArray();
         }
     }
 }
