@@ -47,7 +47,6 @@ namespace Assets.Scripts.GrupoA.AStar
                         if (!visited(sucesor))
                         {
                             openList.Add(sucesor);
-                            //?// CONSULTAR COMO SE PUEDE ORDENAR POR UN VALOR DE UNA VARIABLE
                         }
                     }
                     openList.Sort();
