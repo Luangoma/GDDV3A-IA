@@ -63,11 +63,13 @@
     <Compile Include="Assets\Scripts\Components\QLearning\Movable.cs" />
     <Compile Include="Assets\Scripts\Tools\ArrayExtensions.cs" />
     <Compile Include="Assets\Scripts\Tools\Vector2Extensions.cs" />
+    <Compile Include="Assets\Scripts\GrupoA\QMindAgent.cs" />
     <Compile Include="Assets\Scripts\QMind\QMindTrainerDummy.cs" />
     <Compile Include="Assets\Scripts\QMind\Interfaces\IQMindTrainer.cs" />
     <Compile Include="Assets\External\Supercyan Character Pack Free Sample\Scripts\SimpleSampleCharacterControl.cs" />
     <Compile Include="Assets\Scripts\Components\QLearning\QMindTrainer.cs" />
     <Compile Include="Assets\External\Supercyan Character Pack Free Sample\Scripts\FreeCameraLogic.cs" />
+    <Compile Include="Assets\Scripts\GrupoA\QMindTrainer.cs" />
     <Compile Include="Assets\Scripts\Tools\Vector3Extensions.cs" />
     <Compile Include="Assets\External\Supercyan Character Pack Zombie Sample\Scripts\ZombieFree.cs" />
     <Compile Include="Assets\Scripts\QMind\QMindDummy.cs" />
