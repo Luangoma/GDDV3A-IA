@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class QMindAgent : IQMind
+public class QAgent : IQMind
 {
     public CellInfo GetNextStep(CellInfo currentPosition, CellInfo otherPosition)
     {

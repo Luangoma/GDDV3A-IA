@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Assets.Scripts.GrupoA
@@ -28,27 +29,58 @@ namespace Assets.Scripts.GrupoA
         private int _episodesBetweenSaves { get => _params.episodesBetweenSaves; }
         private INavigationAlgorithm _navigationAlgorithm;
         public WorldInfo _world;
+        private Unity.Mathematics.Random _random = new Unity.Mathematics.Random();
         private float _distances { get => ((_world.WorldSize[0] + _world.WorldSize[1]) / 2) / 4; }
         private int _distanceSegments = 3;
         private int _angleSegments = 8;
         private bool _isLearning = false;
-        public bool memory = true;
+        private bool _memory = true;
         #endregion
 
-        public QTable(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm, int currentEpisode, bool isLearning)
+        public QTable(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm, bool isLearning, bool memory)
         {
             _initialized = true;
             _params = qMindTrainerParams;
             _world = worldInfo;
             _navigationAlgorithm = navigationAlgorithm;
-            _currentEpisode = currentEpisode;
             _isLearning = isLearning;
+            _memory = memory;
         }
-        // HACER
-        private void InitializeEpisode()
+        // REVISAR
+        public void DoStep(CellInfo agent, CellInfo other)
         {
-            if (memory) { ReadQTable(); } else { initQTable(); }
+            // Expandir cel info
+            CellInfo[] posibles = ExpandCellInfo(agent);
+            // Elegir uno respecto al epsilon
+            CellInfo randomCell = RandomCellInfo(posibles);
+            // Camino al enemigo
+            CellInfo[] camino = _navigationAlgorithm.GetPath(agent, other, 10);
 
+            CellInfo newo = camino[0];
+            // Comprobar la lista
+            if (camino?.Length > 0)
+            {
+                newo = camino[camino.Length - 1];
+            }
+            updateWithReward(agent,newo,angleBetweenAgents,distanceBetweenAgents);
+            //guardar tabla
+            SaveQTable();
+        }
+        private CellInfo RandomCellInfo(CellInfo[] posibles)
+        {
+            CellInfo final = posibles[0];
+            int i = 0;
+            while (_random.NextInt() <= _explorationRate)
+            {
+                i++;
+                final = posibles[i % posibles.Length];
+            }
+            return final;
+        }
+        //// HECHO
+        public void InitializeEpisode()
+        {
+            if (_memory) { ReadQTable(); } else { initQTable(); }
         }
         #region Cells
         //// HECHO
@@ -89,11 +121,6 @@ namespace Assets.Scripts.GrupoA
                 }
             }
             return cellList.ToArray();
-        }
-        //// HECHO
-        private bool Terminal(CellInfo cellA, CellInfo cellB)
-        {
-            return cellA == cellB;
         }
         //// HECHO
         private int DiscretizeAngle(float angle)
@@ -161,7 +188,7 @@ namespace Assets.Scripts.GrupoA
             return rewards.Max();
         }
         //// HECHO
-        private void updateWithReward(CellInfo state, CellInfo action, float realAngle, float realDistance, float reward, CellInfo nextState)
+        private void updateWithReward(CellInfo state, CellInfo action, float realAngle, float realDistance, float reward)
         {
             /**
             qTable = Q[state, action] + _learningRate * (reward + _discountFactor * Enumerable.Range
@@ -182,12 +209,12 @@ namespace Assets.Scripts.GrupoA
             //*/
             int angle = DiscretizeAngle(realAngle);
             int distance = DiscretizeDistance(realDistance);
-            qTable[(state, action, angle, distance)] = (1 - _learningRate) * qTable[(state, action, angle, distance)] + _learningRate * (reward + _discountFactor * NextStateValue(state, nextState, angle, distance));
+            qTable[(state, action, angle, distance)] = (1 - _learningRate) * qTable[(state, action, angle, distance)] + _learningRate * (reward + _discountFactor * NextStateValue(state, action, angle, distance));
         }
         #endregion
         #region Init-Read-Save
         // REVISAR
-        void initQTable()
+        private void initQTable()
         {
             CellInfo[] cells = GetCellInfos();
             /**
@@ -217,11 +244,12 @@ namespace Assets.Scripts.GrupoA
             }
         }
         // HACER
-        void SaveQTable()
+        public void SaveQTable()
         {
-            String name = "Qlearning_" + _currentEpisode + "k.csv"; // Nombre del fichero
+            String name = "C:\\tmp\\Qlearning_" + _currentEpisode + "k.csv"; // Nombre del fichero
             StreamWriter file = File.CreateText(name); // Creamos un fichero
-                                                       // file = File.AppendText("prueba.txt"); // Se a�ade texto al fichero existente
+            //file = File.AppendText("prueba.txt"); // Se anade texto al fichero existente
+            file.WriteLine("Tabla Q");
             foreach (var cellInfo in qTable.Values)
             {
                 file.WriteLine(cellInfo); // Lo mismo que cuando escribimos por consola
@@ -229,7 +257,7 @@ namespace Assets.Scripts.GrupoA
             file.Close(); // Al cerrar el fichero nos aseguramos que no queda ning�n dato por guardar
         }
         // HACER
-        void ReadQTable()
+        private void ReadQTable()
         {
             int episode = _currentEpisode - 20000;
             String name = "Qlearning_" + episode + "k.csv"; // Nombre del fichero
