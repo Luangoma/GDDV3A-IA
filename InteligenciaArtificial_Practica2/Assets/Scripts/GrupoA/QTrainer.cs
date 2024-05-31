@@ -3,16 +3,7 @@ using NavigationDJIA.World;
 using QMind;
 using QMind.Interfaces;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
-using UnityEngine.UIElements;
-using static UnityEngine.Rendering.DebugUI;
 using Assets.Scripts.GrupoA;
 
 public class QTrainer : IQMindTrainer
@@ -40,7 +31,7 @@ public class QTrainer : IQMindTrainer
             {
                 AgentPosition = _world.RandomCell();
                 OtherPosition = _world.RandomCell();
-            } while (AgentPosition.Walkable && OtherPosition.Walkable && AgentPosition != OtherPosition);
+            } while (!(AgentPosition.Walkable && OtherPosition.Walkable && (AgentPosition != OtherPosition)));
             _initialized = true;
             CurrentEpisode = 0;
         }

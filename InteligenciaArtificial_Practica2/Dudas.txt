@@ -5,3 +5,4 @@
  - Comprobar el csv lectura escritura, no se puede hasta que no se cree la tabla, punto 1
  - Que toda la funcionalidad de los episodios este guardado/asignado para el Qtable o en que se deberia dividir
  - Cada cuantos episodios cambiar el terreno de juego para que el agente se adapte a diferentes escenarios
+ - Como saber si una accion es positiva o negativa

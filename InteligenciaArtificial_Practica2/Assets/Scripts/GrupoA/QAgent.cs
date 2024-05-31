@@ -1,7 +1,5 @@
 using NavigationDJIA.World;
 using QMind.Interfaces;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class QAgent : IQMind

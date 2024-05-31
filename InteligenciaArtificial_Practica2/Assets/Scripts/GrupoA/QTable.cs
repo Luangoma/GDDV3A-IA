@@ -5,9 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Assets.Scripts.GrupoA
@@ -16,8 +13,7 @@ namespace Assets.Scripts.GrupoA
     {
 
         #region Variables, a lot of variables
-        private bool _initialized = false;
-        // Posicion,accion y distancia,orientacion del enemigo
+        // Posicion, accion y distancia,orientacion del enemigo
         private Dictionary<(CellInfo, CellInfo, int, int), float> qTable = new Dictionary<(CellInfo, CellInfo, int, int), float>();
         private QMindTrainerParams _params;
         private float _learningRate { get => _params.alpha; } // Alpha
@@ -29,17 +25,18 @@ namespace Assets.Scripts.GrupoA
         private int _episodesBetweenSaves { get => _params.episodesBetweenSaves; }
         private INavigationAlgorithm _navigationAlgorithm;
         public WorldInfo _world;
-        private Unity.Mathematics.Random _random = new Unity.Mathematics.Random();
+        private System.Random _random = new System.Random();
         private float _distances { get => ((_world.WorldSize[0] + _world.WorldSize[1]) / 2) / 4; }
         private int _distanceSegments = 3;
         private int _angleSegments = 8;
+        private const int _negativeReward = -100;
+        private const int _positiveReward = 5;
         private bool _isLearning = false;
         private bool _memory = true;
         #endregion
 
         public QTable(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm, bool isLearning, bool memory)
         {
-            _initialized = true;
             _params = qMindTrainerParams;
             _world = worldInfo;
             _navigationAlgorithm = navigationAlgorithm;
@@ -54,23 +51,30 @@ namespace Assets.Scripts.GrupoA
             // Elegir uno respecto al epsilon
             CellInfo randomCell = RandomCellInfo(posibles);
             // Camino al enemigo
-            CellInfo[] camino = _navigationAlgorithm.GetPath(agent, other, 10);
-
+            CellInfo[] camino = _navigationAlgorithm.GetPath(agent, other, 2);
             CellInfo newo = camino[0];
             // Comprobar la lista
             if (camino?.Length > 0)
             {
                 newo = camino[camino.Length - 1];
             }
-            updateWithReward(agent,newo,angleBetweenAgents,distanceBetweenAgents);
+            // Calculamos el cuadrante el cual pertenece el enemigo respecto el agente
+            float angleBetweenAgents = (float)(Math.Atan2((agent.x - other.x), (agent.y - other.y)) * (180.0 / Math.PI));
+            // Calculamos la distancia manhattan respecto el agente y el enemigo
+            float distanceBetweenAgents = agent.Distance(other, CellInfo.DistanceType.Manhattan);
+            // Recompensa que se le da el jugador si la jugada es correcta*
+            float reward = (newo.Walkable && agent.x != other.x && agent.y != other.y) ? _positiveReward : _negativeReward;
+            // tempInCelsius < 20.0 ? "Cold." : "Perfect!";
+            updateWithReward(agent, newo, angleBetweenAgents, distanceBetweenAgents, reward);
             //guardar tabla
             SaveQTable();
         }
+        //// HECHO
         private CellInfo RandomCellInfo(CellInfo[] posibles)
         {
             CellInfo final = posibles[0];
             int i = 0;
-            while (_random.NextInt() <= _explorationRate)
+            while (_random.NextDouble() <= _explorationRate)
             {
                 i++;
                 final = posibles[i % posibles.Length];
@@ -246,7 +250,7 @@ namespace Assets.Scripts.GrupoA
         // HACER
         public void SaveQTable()
         {
-            String name = "C:\\tmp\\Qlearning_" + _currentEpisode + "k.csv"; // Nombre del fichero
+            string name = "Qlearning_" + _currentEpisode + ".csv"; // Nombre del fichero
             StreamWriter file = File.CreateText(name); // Creamos un fichero
             //file = File.AppendText("prueba.txt"); // Se anade texto al fichero existente
             file.WriteLine("Tabla Q");
@@ -255,6 +259,7 @@ namespace Assets.Scripts.GrupoA
                 file.WriteLine(cellInfo); // Lo mismo que cuando escribimos por consola
             }
             file.Close(); // Al cerrar el fichero nos aseguramos que no queda ning�n dato por guardar
+            Debug.Log(Directory.GetCurrentDirectory()+" : "+name);
         }
         // HACER
         private void ReadQTable()
