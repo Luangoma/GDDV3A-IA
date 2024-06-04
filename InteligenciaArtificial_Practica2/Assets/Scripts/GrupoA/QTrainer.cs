@@ -14,60 +14,59 @@ public class QTrainer : IQMindTrainer
     public CellInfo OtherPosition { get; private set; }
     public float Return { get; }
     public float ReturnAveraged { get; }
-    public event EventHandler OnEpisodeStarted; // ?
-    public event EventHandler OnEpisodeFinished; // ?
+    public event EventHandler OnEpisodeStarted;
+    public event EventHandler OnEpisodeFinished;
     public bool _initialized = false;
     private WorldInfo _world;
     private QTable QTable;
 
-    // HACER
+    // REVISAR
     public void DoStep(bool train)
     {
-
         if (!_initialized)
         {
-            QTable.InitializeEpisode();
+            QTable.Init();
             do
             {
                 AgentPosition = _world.RandomCell();
                 OtherPosition = _world.RandomCell();
             } while (!(AgentPosition.Walkable && OtherPosition.Walkable && (AgentPosition != OtherPosition)));
             _initialized = true;
-            CurrentEpisode = 0;
+            OnEpisodeStarted?.Invoke(this, null);
         }
         else
         {
-            /**/
             if (Terminal(AgentPosition, OtherPosition))
             {
+                OnEpisodeFinished?.Invoke(this, null);
                 _initialized = false;
                 Debug.Log("Es terminal: " + AgentPosition + ", " + OtherPosition);
                 CurrentEpisode++;
                 CurrentStep = 0;
+                QTable.Save();
             }
             else
             {
                 QTable.DoStep(AgentPosition, OtherPosition);
+                QTable.UpdateWithReward(AgentPosition,OtherPosition);
                 CurrentStep++;
             }
-            //*/
         }
         Debug.Log("QMindTrainer: DoStep");
     }
-    // REVISAR
+    //// HECHO
     public void Initialize(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm)
     {
+        // Asignamos las variables de inicializacion
         _world = worldInfo;
-        QTable = new QTable(qMindTrainerParams, worldInfo, navigationAlgorithm, true, false);
-        OnEpisodeStarted?.Invoke(this, EventArgs.Empty);
-
+        QTable = new QTable(qMindTrainerParams, worldInfo.WorldSize, navigationAlgorithm);
+        CurrentEpisode = 0;
         Debug.Log("QMindTrainer: initialized");
     }
     //// HECHO
     private bool Terminal(CellInfo cellA, CellInfo cellB)
     {
         return cellA == cellB;
-
     }
 }
 

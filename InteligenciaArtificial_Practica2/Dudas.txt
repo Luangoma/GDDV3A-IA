@@ -1,8 +1,27 @@
  - Solucionar error con unity, dice que no se crea la tabla
  - El uso de los EventHandler (delegados)
+Es codigo del profe el cual suscribe a los eventos para por ejemplo omitir el movimiento inicial de los personajes al empezar cada episodio
+
  - El movimiento del personaje, conviene hacerlo mediante cellinfo (actual) o usar orientaciones (cartesiano, norte, sur...)
+No tener en cuenta la posicion en el estado si no la accion, cambiar parametros de entrada a booleanos de direccion y los valores de salida en vez de ser un float que sean un array de floats, se tenia mal diseñada la tabla
+
  - Como plantear el tema de los angulos, orientaciones, segmentado en 8
+unity implementa una funcion para saber los angulos entre dos elementos, revisar docuentacion, para saber como lo implementa correctametne
+Vector2.SignedAngle()
+
  - Comprobar el csv lectura escritura, no se puede hasta que no se cree la tabla, punto 1
+revisar metodos y aplicar nueva estructura
+
+
  - Que toda la funcionalidad de los episodios este guardado/asignado para el Qtable o en que se deberia dividir
+revisar initialized
+
  - Cada cuantos episodios cambiar el terreno de juego para que el agente se adapte a diferentes escenarios
+decision propia de diseño
+
+- memoria
+escribir elementos que hayamos tenido en cuenta etc
+
+
  - Como saber si una accion es positiva o negativa
+decision de diseño, probar diferentes combinaciones en diferentes tablas, no olvidar contarlo en memoria
