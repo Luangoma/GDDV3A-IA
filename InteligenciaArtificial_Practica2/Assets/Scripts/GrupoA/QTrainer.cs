@@ -4,7 +4,6 @@ using QMind;
 using QMind.Interfaces;
 using System;
 using UnityEngine;
-using Assets.Scripts.GrupoA;
 
 public class QTrainer : IQMindTrainer
 {
