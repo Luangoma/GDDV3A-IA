@@ -32,7 +32,7 @@ public class QTrainer : IQMindTrainer
                 AgentPosition = _world.RandomCell();
                 OtherPosition = _world.RandomCell();
             } while (!(AgentPosition.Walkable && OtherPosition.Walkable && (AgentPosition != OtherPosition)));
-
+            Return = 0; ReturnAveraged = 0;
             _initialized = true;
             OnEpisodeStarted?.Invoke(this, null);
         }
@@ -65,12 +65,13 @@ public class QTrainer : IQMindTrainer
             {
                 OnEpisodeFinished?.Invoke(this, null);
                 _initialized = false;
-                Debug.Log("Es terminal: " + AgentPosition + ", " + OtherPosition);
+                //Debug.Log("Es terminal: " + AgentPosition + ", " + OtherPosition);
                 CurrentEpisode++;
                 CurrentStep = 0;
                 if (CurrentEpisode % _episodesBetweenSaves == 0) qTable.Save();
             }
             CurrentStep++;
+            //if (CurrentEpisode % _episodesBetweenSaves == 0) qTable.Save();
         }
         Debug.Log("QMindTrainer: DoStep");
     }
