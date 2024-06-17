@@ -76,7 +76,7 @@ public class QTrainer : IQMindTrainer
     {
         // Asignamos las variables de inicializacion
         _world = worldInfo;
-        qTable = new QTable(qMindTrainerParams, worldInfo, navigationAlgorithm);
+        qTable = new QTable(qMindTrainerParams, worldInfo);
         _episodesBetweenSaves = qMindTrainerParams.episodesBetweenSaves;
         _navigationAlgorithm = navigationAlgorithm;
         CurrentEpisode = 0;

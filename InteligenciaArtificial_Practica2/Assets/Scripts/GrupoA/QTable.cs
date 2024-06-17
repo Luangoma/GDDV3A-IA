@@ -74,16 +74,12 @@ public class QTable
     #region Variables
     // Parametros y recurrentes
     private readonly QMindTrainerParams _params;
-    private readonly INavigationAlgorithm _navigationAlgorithm;
     private readonly WorldInfo _worldInfo;
     private readonly string path = Application.dataPath + "/scripts/GrupoA/";
     // Tabla de valores
     private Dictionary<QState, float[]> qTable = new Dictionary<QState, float[]>();
     // Estado parcial
-    private QState _previousState;
     private CellInfo north, east, south, west;
-    private int _previousDistance = 0;
-    private int _previousAction = 0;
     // Segmentacion del mundo
     private float _distances;
     private const int _distanceSegments = 3;
@@ -101,14 +97,12 @@ public class QTable
     /// <param name="qMindTrainerParams"></param>
     /// <param name="worldSize"></param>
     /// <param name="navigationAlgorithm"></param>
-    public QTable(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm)
+    public QTable(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo)
     {
         // Parametros de ejecucion
         _params = qMindTrainerParams;
         // Conocimiento del mundo para consultas
         _worldInfo = worldInfo;
-        // Navegacion por el mundo entre posiciones
-        _navigationAlgorithm = navigationAlgorithm;
         // Casillas promedio del mundo y su porcion entre 4
         _distances = (worldInfo.WorldSize[0] + worldInfo.WorldSize[1]) / 2 / 4;
     }
