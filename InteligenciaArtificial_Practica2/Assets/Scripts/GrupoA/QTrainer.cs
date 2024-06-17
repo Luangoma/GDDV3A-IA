@@ -3,6 +3,7 @@ using NavigationDJIA.World;
 using QMind;
 using QMind.Interfaces;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class QTrainer : IQMindTrainer
@@ -11,8 +12,8 @@ public class QTrainer : IQMindTrainer
     public int CurrentStep { get; private set; }
     public CellInfo AgentPosition { get; private set; }
     public CellInfo OtherPosition { get; private set; }
-    public float Return { get; }
-    public float ReturnAveraged { get; }
+    public float Return { get; private set; }
+    public float ReturnAveraged { get; private set; }
     public event EventHandler OnEpisodeStarted;
     public event EventHandler OnEpisodeFinished;
     public bool _initialized = false;
@@ -20,12 +21,12 @@ public class QTrainer : IQMindTrainer
     private QTable qTable;
     private INavigationAlgorithm _navigationAlgorithm;
     private int _episodesBetweenSaves;
-    // REVISAR
+
     public void DoStep(bool train)
     {
         if (!_initialized)
         {
-            qTable.Init();
+            qTable.Load();
             do
             {
                 AgentPosition = _world.RandomCell();
@@ -47,7 +48,7 @@ public class QTrainer : IQMindTrainer
             // 4 - Mover al jugador ((other)el jugador que es una ia, no el zombi)
             CellInfo[] ruta = _navigationAlgorithm.GetPath(OtherPosition, AgentPosition, 50);
             if (ruta != null && ruta.Length > 0)
-                OtherPosition = ruta[0];
+            { OtherPosition = ruta[0]; }
             // 5 - Identificar nuevo estado
             QTable.QState estadoNuevo = qTable.GetState(AgentPosition, OtherPosition);
             int newDistance = (int)AgentPosition.Distance(OtherPosition, CellInfo.DistanceType.Manhattan);
@@ -55,6 +56,8 @@ public class QTrainer : IQMindTrainer
             bool atrapado = AgentPosition.Equals(OtherPosition);
             bool ilegal = !AgentPosition.Walkable;
             float recompensa = qTable.GetReward(oldDistance, newDistance, ilegal, atrapado);
+            ReturnAveraged = recompensa;
+            Return += recompensa;
             // 7 - Actualizar tablaQ
             qTable.UpdateWithReward(estadoInicial, estadoNuevo, accion, recompensa);
             // 8 - Comprobar si hay que terminar el episodio
@@ -79,13 +82,9 @@ public class QTrainer : IQMindTrainer
         qTable = new QTable(qMindTrainerParams, worldInfo);
         _episodesBetweenSaves = qMindTrainerParams.episodesBetweenSaves;
         _navigationAlgorithm = navigationAlgorithm;
+        _navigationAlgorithm.Initialize(worldInfo);
         CurrentEpisode = 0;
         Debug.Log("QMindTrainer: initialized");
-    }
-
-    private bool Terminal(CellInfo cellA, CellInfo cellB)
-    {
-        return cellA == cellB || !AgentPosition.Walkable;
     }
 }
 
