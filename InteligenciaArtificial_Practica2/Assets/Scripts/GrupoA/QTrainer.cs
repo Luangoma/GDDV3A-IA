@@ -53,19 +53,27 @@ public class QTrainer : IQMindTrainer
         }
         Debug.Log("QMindTrainer: DoStep");
     }
-    //// HECHO
+
     public void Initialize(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm)
     {
         // Asignamos las variables de inicializacion
         _world = worldInfo;
-        QTable = new QTable(qMindTrainerParams, worldInfo.WorldSize, navigationAlgorithm);
+        QTable = new QTable(qMindTrainerParams, worldInfo, navigationAlgorithm,SetAgent,SetOther);
         CurrentEpisode = 0;
         Debug.Log("QMindTrainer: initialized");
     }
-    //// HECHO
+
     private bool Terminal(CellInfo cellA, CellInfo cellB)
     {
         return cellA == cellB;
+    }
+    private void SetAgent(CellInfo newData)
+    {
+        AgentPosition = newData;
+    }
+    private void SetOther(CellInfo newData)
+    {
+        OtherPosition = newData;
     }
 }
 
