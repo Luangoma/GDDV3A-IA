@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
@@ -74,12 +75,8 @@ public class QTable
     // Parametros y recurrentes
     private readonly QMindTrainerParams _params;
     private readonly INavigationAlgorithm _navigationAlgorithm;
-    private readonly System.Random _random = new System.Random();
     private readonly WorldInfo _worldInfo;
     private readonly string path = Application.dataPath + "/scripts/GrupoA/";
-    private Action<CellInfo> updateAgent;
-    private Action<CellInfo> updateOther;
-
     // Tabla de valores
     private Dictionary<QState, float[]> qTable = new Dictionary<QState, float[]>();
     // Estado parcial
@@ -93,9 +90,9 @@ public class QTable
     private const int _angleSegments = 8;
     // Recompensas
     private const int _negativeReward = -100;   // Pierde
-    private const int _lowReward = 1;           // Sigue vivo pero se acerca
-    private const int _hightReward = 5;         // Mantiene distancia
-    private const int _positiveReward = 30;     // Se aleja
+    private const int _lowReward = -1;           // Sigue vivo pero se acerca
+    private const int _hightReward = 1;         // Mantiene distancia
+    private const int _positiveReward = 3;     // Se aleja
     #endregion
 
     /// <summary>
@@ -104,7 +101,7 @@ public class QTable
     /// <param name="qMindTrainerParams"></param>
     /// <param name="worldSize"></param>
     /// <param name="navigationAlgorithm"></param>
-    public QTable(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm, Action<CellInfo> updateAgent, Action<CellInfo> updateOther)
+    public QTable(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm)
     {
         // Parametros de ejecucion
         _params = qMindTrainerParams;
@@ -114,22 +111,6 @@ public class QTable
         _navigationAlgorithm = navigationAlgorithm;
         // Casillas promedio del mundo y su porcion entre 4
         _distances = (worldInfo.WorldSize[0] + worldInfo.WorldSize[1]) / 2 / 4;
-        // Metodos de actualizacion de la partida
-        this.updateAgent = updateAgent;
-        this.updateOther = updateOther;
-    }
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="agentPosition"></param>
-    /// <param name="otherPosition"></param>
-    internal void DoStep(CellInfo agentPosition, CellInfo otherPosition)
-    {
-        CellInfo[] ruta = _navigationAlgorithm.GetPath(otherPosition, agentPosition, 10);
-        updateOther(ruta[0]);
-
-
-        updateAgent(new CellInfo(0,0));
     }
 
     #region Gestion de valores
@@ -139,41 +120,15 @@ public class QTable
     /// </summary>
     /// <param name="agentPosition"></param>
     /// <param name="otherPosition"></param>
-    internal void UpdateWithReward(CellInfo agentPosition, CellInfo otherPosition)
+    internal void UpdateWithReward(QState oldState, QState newState, int action, float reward)
     {
-        // Calculamos la distancia manhattan respecto el agente y el enemigo
-        float newDistance = agentPosition.Distance(otherPosition, CellInfo.DistanceType.Manhattan);
-        // Calculamos el cuadrante el cual pertenece el enemigo respecto el agente
-        float angle = (float)(Math.Atan2((agentPosition.x - otherPosition.x), (agentPosition.y - otherPosition.y)) * (180.0 / Math.PI));
-        // Discretizamos la distancia y el angulo
-        int discreteDistance = DiscretizeDistance(newDistance);
-        int discreteAngle = DiscretizeAngle(angle);
-        // Creamos el nuevo estado dado la situacion actual
-        north = _worldInfo[agentPosition.x, agentPosition.y + 1];
-        east = _worldInfo[agentPosition.x + 1, agentPosition.y];
-        south = _worldInfo[agentPosition.x, agentPosition.y - 1];
-        west = _worldInfo[agentPosition.x - 1, agentPosition.y];
-        QState newState = new QState(north.Walkable, east.Walkable, south.Walkable, west.Walkable, discreteDistance, discreteAngle);
-
-
-        //int[] algo = {29, 0, 1, 2, 3, 4, 5, 6, 7, 9, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28 };
-        //int max = algo.Max();
-        //int posmax = algo.ToList().IndexOf(algo.Max());
-
-        // Recompensa que se le da el jugador si la jugada es correcta*
-        float reward = GetReward(agentPosition, otherPosition);
-
-        //int newAction = GetActionIndex(otherPosition, agentPosition); // reviasr que el agente sea el enemigo o el jugador
-        int newAction = GetActionIndex(agentPosition, otherPosition);
-
-        // Actualizamos el valor de la tabla de valores sigueindo la regla de aprendizaje
-        qTable[_previousState][_previousAction] = (1 - _params.alpha) * qTable[_previousState][_previousAction]
-            + _params.alpha * (reward + _params.gamma * qTable[newState][newAction]);
-
         /**
-        qTable[(state, action, angle, distance)] = (1 - _learningRate) * qTable[(state, action, angle, distance)] + _learningRate * (reward + _discountFactor * NextStateValue(state, nextState, angle, distance));
-        qTable[newState][idxNewStateValue] = (1 - _learningRate) * qTable[_previousState][idxNewStateValue] + _learningRate * (reward + _discountFactor * nextAction(newState));
-        //*/
+         * q'(s,a) =  (1-a)*
+         */
+        float newValue = (1 - _params.alpha) * qTable[oldState][action];
+        float maxFutureValue = qTable[newState].Max();
+        newValue += _params.alpha * (reward + _params.gamma * maxFutureValue);
+        qTable[oldState][action] = newValue;
     }
     /// <summary>
     /// Devuelve el angulo discretizado en uno de las distancias segmentadas (_distanceSegments).
@@ -205,47 +160,30 @@ public class QTable
     }
     /// <summary>
     /// Devuelve el valor con la maxima recompensa de un estado. Puede no ser la maxima dependiendo de la entropia (Epsilon).
-    /// GetReward o GetRewardIndex? puede que tenga conflicto de existencia con GetActionIndex
     /// Calcula la recompensa respecto la distancia entre los agentes (agent y other)
     /// </summary>
     /// <returns></returns>
-    private float GetReward(CellInfo agentPosition, CellInfo otherPosition)
+    public float GetReward(int oldDist, int newDist, bool illegal, bool player)
     {
-        float currentDistance = agentPosition.Distance(otherPosition, CellInfo.DistanceType.Euclidean);
-        if (agentPosition == otherPosition)
+        //float currentDistance = agentPosition.Distance(otherPosition, CellInfo.DistanceType.Manhattan);
+        if (player || illegal)
         {
             return _negativeReward;
         }
 
-        if (currentDistance < _previousDistance)
+        if (newDist < oldDist)
         {
+            //recompensa negativa
             return _lowReward;
         }
-        else if (currentDistance == _previousDistance)
+        else if (newDist == oldDist)
         {
             return _hightReward;
-
         }
         else //if (currentDistance > _previousDistance)
         {
             return _positiveReward;
         }
-    }
-    /// <summary>
-    /// Devuelve la siguiente accion a tomar en el estado actual. Up = 0; Right = 1; Down = 2; Left = 3;
-    /// </summary>
-    /// <param name="agentPosition"></param>
-    /// <param name="otherPosition"></param>
-    /// <returns></returns>
-    private int GetActionIndex(CellInfo agentPosition, CellInfo otherPosition)
-    {
-        // Determine the action taken based on the change in agent position
-        // Assuming the previous agent position is stored in _previousState
-        if (otherPosition.y > agentPosition.y) return 0; // Up
-        if (otherPosition.x > agentPosition.x) return 1; // Right
-        if (otherPosition.y < agentPosition.y) return 2; // Down
-        if (otherPosition.x < agentPosition.x) return 3; // Left
-        return -1; // No valid action found
     }
 
     #endregion
@@ -357,4 +295,55 @@ public class QTable
 
     #endregion
 
+
+    public QState GetState(CellInfo agentPosition, CellInfo otherPosition)
+    {
+        // Calculamos la distancia manhattan respecto el agente y el enemigo
+        float distance = agentPosition.Distance(otherPosition, CellInfo.DistanceType.Manhattan);
+        // Calculamos el cuadrante el cual pertenece el enemigo respecto el agente
+        // float angle = (float)(Math.Atan2((agentPosition.x - otherPosition.x), (agentPosition.y - otherPosition.y)) * (180.0 / Math.PI));
+        float angle = Vector2.Angle(new Vector2(agentPosition.x, agentPosition.y), new Vector2(otherPosition.x, otherPosition.y));
+        // Discretizamos la distancia y el angulo
+        int discreteDistance = DiscretizeDistance(distance);
+        int discreteAngle = DiscretizeAngle(angle);
+        // Creamos el nuevo estado dado la situacion actual
+        north = _worldInfo[agentPosition.x, agentPosition.y + 1];
+        east = _worldInfo[agentPosition.x + 1, agentPosition.y];
+        south = _worldInfo[agentPosition.x, agentPosition.y - 1];
+        west = _worldInfo[agentPosition.x - 1, agentPosition.y];
+        return new QState(north.Walkable, east.Walkable, south.Walkable, west.Walkable, discreteDistance, discreteAngle);
+    }
+    /// <summary>
+    /// Devuelve la accion a tomar dada la situacion actual.
+    /// </summary>
+    /// <returns>El indice de la accion tomada</returns>
+    public int GetAction(QState estado)
+    {
+        // 1 - Elegir nº random entre 0 y 1
+        float value = UnityEngine.Random.Range(0f, 1f);
+        // 2 - Si epsilon es mayor al numero, accion aleatoria, si no, la opcion valor amas alto
+        if (_params.epsilon > value)
+        {
+            return UnityEngine.Random.Range(0, 4);
+        }
+        else
+        {
+            return qTable[estado].ToList().IndexOf(qTable[estado].Max());
+        }
+    }
+    public CellInfo GetAgentMovement(int action, CellInfo agentPosition)
+    {
+        switch (action)
+        {
+            case 0:
+                return _worldInfo[agentPosition.x, agentPosition.y + 1];
+            case 1:
+                return _worldInfo[agentPosition.x + 1, agentPosition.y];
+            case 2:
+                return _worldInfo[agentPosition.x, agentPosition.y - 1];
+            case 3:
+                return _worldInfo[agentPosition.x - 1, agentPosition.y];
+        }
+        return null;
+    }
 }
