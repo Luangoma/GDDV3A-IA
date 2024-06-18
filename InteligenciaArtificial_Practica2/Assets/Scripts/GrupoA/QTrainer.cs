@@ -26,7 +26,6 @@ public class QTrainer : IQMindTrainer
     {
         if (!_initialized)
         {
-            qTable.Load();
             do
             {
                 AgentPosition = _world.RandomCell();
@@ -42,7 +41,7 @@ public class QTrainer : IQMindTrainer
             QTable.QState estadoInicial = qTable.GetState(AgentPosition, OtherPosition);
             int oldDistance = (int)AgentPosition.Distance(OtherPosition, CellInfo.DistanceType.Manhattan);
             // 2 - Elegir accion del agente
-            int accion = qTable.GetAction(estadoInicial);
+            int accion = qTable.GetTrainingAction(estadoInicial);
             // 3 - Mover al agente
             AgentPosition = qTable.GetAgentMovement(accion, AgentPosition);
             // 4 - Mover al jugador ((other)el jugador que es una ia, no el zombi)
@@ -85,6 +84,7 @@ public class QTrainer : IQMindTrainer
         _navigationAlgorithm = navigationAlgorithm;
         _navigationAlgorithm.Initialize(worldInfo);
         CurrentEpisode = 0;
+        qTable.Load();
         Debug.Log("QMindTrainer: initialized");
     }
 }
