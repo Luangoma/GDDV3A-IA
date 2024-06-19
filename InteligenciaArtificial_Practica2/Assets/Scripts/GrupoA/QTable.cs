@@ -1,13 +1,9 @@
-﻿using NavigationDJIA.Interfaces;
-using NavigationDJIA.World;
+﻿using NavigationDJIA.World;
 using QMind;
-using System;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 public class QTable
@@ -91,7 +87,7 @@ public class QTable
     private int _angleSegments = 8;
 
     // Recompensas
-    private const int _negativeReward = -100;   // Pierde
+    private const int _negativeReward = -100;   // Pierde o terminal
     private const int _lowReward = -1;          // Sigue vivo pero se acerca
     private const int _hightReward = 1;         // Mantiene distancia
     private const int _positiveReward = 5;      // Se aleja
@@ -177,6 +173,21 @@ public class QTable
         return (int)(realAngle / (360 / _angleSegments));
     }
     /// <summary>
+    /// Funcion que normaliza los episodios a la funcion de e^(-x). (Funcion decreciente).
+    /// </summary>
+    /// <param name="value"></param>
+    /// <param name="minValue"></param>
+    /// <param name="maxValue"></param>
+    /// <returns>Valor normalizado entre los dos parametros.</returns>
+    private float Normalize(float value, float minValue = 0, float maxValue = 1)
+    {
+        if (minValue == maxValue)
+        {
+            return value;
+        }
+        return (value - minValue) / (maxValue - minValue);
+    }
+    /// <summary>
     /// Devuelve el valor con la maxima recompensa de un estado. Puede no ser la maxima dependiendo de la entropia (Epsilon).
     /// </summary>
     /// <param name="oldDist"></param>
@@ -234,12 +245,13 @@ public class QTable
     /// </summary>
     /// <param name="estado"></param>
     /// <returns>Indice de una accion a entrenar.</returns>
-    public int GetTrainingAction(QState estado)
+    public int GetTrainingAction(QState estado, int CurrentEpisode = 1)
     {
         // 1 - Elegir nº random entre 0 y 1
         float value = UnityEngine.Random.Range(0f, 1f);
         // 2 - Si epsilon es mayor al numero, accion aleatoria, si no, la opcion valor amas alto
-        if (_params.epsilon > value)
+        //if (_params.epsilon > value) // Usando el epsilon proporcionado - entrenamiento manual
+        if (Mathf.Exp(-Normalize(CurrentEpisode, 0, _params.episodes)) > value) // Epsilon calculado - entrenamiento automatico
         {
             return UnityEngine.Random.Range(0, 4);
         }
@@ -314,7 +326,7 @@ public class QTable
                 {
                     // Inicializamos los valores Q a un valor por defecto 0.0f.
                     qTable[new QState(states[option, 0], states[option, 1], states[option, 2], states[option, 3], distance, orientation)] = new float[4]
-                    /** 
+                    /**/
                     {
                         states[option, 0] ? 0f : -100f,
                         states[option, 1] ? 0f : -100f,
@@ -334,7 +346,7 @@ public class QTable
     internal void Save(string fileName = "QTable")
     {
         StreamWriter file = File.CreateText(path + fileName + ".csv");
-        string initialText = "Episodios del archivo;" + _episodesFile.ToString() + ";Distancias;" + _distances + ";Segmentos de angulos;" + _angleSegments;
+        string initialText = "Episodios del archivo;" + _episodesFile.ToString() + ";Distancias;" + _distancesValues + ";Segmentos de angulos;" + _angleSegments;
         file.WriteLine(initialText);
 
         string keyValue;

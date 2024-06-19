@@ -41,7 +41,7 @@ public class QTrainer : IQMindTrainer
             QTable.QState estadoInicial = qTable.GetState(AgentPosition, OtherPosition);
             int oldDistance = (int)AgentPosition.Distance(OtherPosition, CellInfo.DistanceType.Manhattan);
             // 2 - Elegir accion del agente
-            int accion = qTable.GetTrainingAction(estadoInicial);
+            int accion = qTable.GetTrainingAction(estadoInicial, CurrentEpisode);
             // 3 - Mover al agente
             AgentPosition = qTable.GetAgentMovement(accion, AgentPosition);
             // 4 - Mover al jugador ((other)el jugador que es una ia, no el zombi)
@@ -70,7 +70,6 @@ public class QTrainer : IQMindTrainer
                 if (CurrentEpisode % _episodesBetweenSaves == 0) qTable.Save();
             }
             CurrentStep++;
-            //if (CurrentEpisode % _episodesBetweenSaves == 0) qTable.Save();
         }
         Debug.Log("QMindTrainer: DoStep");
     }
