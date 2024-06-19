@@ -82,7 +82,7 @@ public class QTable
     private Dictionary<QState, float[]> qTable = new Dictionary<QState, float[]>();
 
     // Estado parcial
-    private bool north, east, south, west;
+    private CellInfo north, east, south, west;
 
     // Segmentacion del mundo
     private float _distances;
@@ -92,16 +92,16 @@ public class QTable
 
     // Recompensas
     private const int _negativeReward = -100;   // Pierde
-    private const int _lowReward = -3;          // Sigue vivo pero se acerca
-    private const int _hightReward = 3;         // Mantiene distancia
-    private const int _positiveReward = 30;      // Se aleja
+    private const int _lowReward = -1;          // Sigue vivo pero se acerca
+    private const int _hightReward = 1;         // Mantiene distancia
+    private const int _positiveReward = 3;      // Se aleja
 
     #endregion
 
     #region Constructores
 
     /// <summary>
-    /// Constructor de la tabla de valores y del resto de elementos base para entrenar.
+    /// Constructor del la tabla de valores y del resto de elementos base
     /// </summary>
     /// <param name="qMindTrainerParams"></param>
     /// <param name="worldSize"></param>
@@ -116,14 +116,6 @@ public class QTable
         _distances = (worldInfo.WorldSize[0] + worldInfo.WorldSize[1]) / 2 / 4;
         _distancesValues = _distanceSegments + 5;
     }
-    /// <summary>
-    /// Constructor de la tabla de valores para solamente entreno.
-    /// </summary>
-    /// <param name="worldInfo"></param>
-    public QTable(WorldInfo worldInfo)
-    {
-        _worldInfo = worldInfo;
-    }
 
     #endregion
 
@@ -132,10 +124,8 @@ public class QTable
     /// <summary>
     /// Actualiza el valor de la tabla teniendo en cuenta la decision tomada y el estado.
     /// </summary>
-    /// <param name="oldState"></param>
-    /// <param name="newState"></param>
-    /// <param name="action"></param>
-    /// <param name="reward"></param>
+    /// <param name="agentPosition"></param>
+    /// <param name="otherPosition"></param>
     internal void UpdateWithReward(QState oldState, QState newState, int action, float reward)
     {
         /**
@@ -176,11 +166,7 @@ public class QTable
     /// <summary>
     /// Devuelve el valor con la maxima recompensa de un estado. Puede no ser la maxima dependiendo de la entropia (Epsilon).
     /// </summary>
-    /// <param name="oldDist"></param>
-    /// <param name="newDist"></param>
-    /// <param name="illegal"></param>
-    /// <param name="player"></param>
-    /// <returns>Recompensa respecto las distancias.</returns>
+    /// <returns>Recompensa respecto las distancias</returns>
     public float GetReward(int oldDist, int newDist, bool illegal, bool player)
     {
         //float currentDistance = agentPosition.Distance(otherPosition, CellInfo.DistanceType.Manhattan);
@@ -220,18 +206,17 @@ public class QTable
         int discreteDistance = DiscretizeDistance(distance);
         int discreteAngle = DiscretizeAngle(angle);
         // Creamos el nuevo estado dado la situacion actual
-        north = _worldInfo[agentPosition.x, agentPosition.y + 1].Walkable;
-        east = _worldInfo[agentPosition.x + 1, agentPosition.y].Walkable;
-        south = _worldInfo[agentPosition.x, agentPosition.y - 1].Walkable;
-        west = _worldInfo[agentPosition.x - 1, agentPosition.y].Walkable;
-        return new QState(north, east, south, west, discreteDistance, discreteAngle);
+        north = _worldInfo[agentPosition.x, agentPosition.y + 1];
+        east = _worldInfo[agentPosition.x + 1, agentPosition.y];
+        south = _worldInfo[agentPosition.x, agentPosition.y - 1];
+        west = _worldInfo[agentPosition.x - 1, agentPosition.y];
+        return new QState(north.Walkable, east.Walkable, south.Walkable, west.Walkable, discreteDistance, discreteAngle);
     }
     /// <summary>
-    /// Devuelve una accion dependiendo del epsilon. Usado solo para entrenar.
+    /// Devuelve la accion a tomar dada la situacion actual.
     /// </summary>
-    /// <param name="estado"></param>
-    /// <returns>Indice de una accion a entrenar.</returns>
-    public int GetTrainingAction(QState estado)
+    /// <returns>El indice de la accion tomada.</returns>
+    public int GetAction(QState estado)
     {
         // 1 - Elegir nº random entre 0 y 1
         float value = UnityEngine.Random.Range(0f, 1f);
@@ -246,15 +231,6 @@ public class QTable
         }
     }
     /// <summary>
-    /// Devuelve la mejor accion a tomar dada la situacion.
-    /// </summary>
-    /// <param name="estado"></param>
-    /// <returns>El indice de la accion tomada.</returns>
-    public int GetAction(QState estado)
-    {
-        return qTable[estado].ToList().IndexOf(qTable[estado].Max());
-    }
-    /// <summary>
     /// Calcula la celda a donde va a moverse el agente dado la accion y la posicion del agente.
     /// </summary>
     /// <param name="action"></param>
@@ -265,13 +241,13 @@ public class QTable
         switch (action)
         {
             case 0:
-                return _worldInfo.NextCell(agentPosition, Directions.Up);
+                return _worldInfo[agentPosition.x, agentPosition.y + 1];
             case 1:
-                return _worldInfo.NextCell(agentPosition, Directions.Right);
+                return _worldInfo[agentPosition.x + 1, agentPosition.y];
             case 2:
-                return _worldInfo.NextCell(agentPosition, Directions.Down);
+                return _worldInfo[agentPosition.x, agentPosition.y - 1];
             case 3:
-                return _worldInfo.NextCell(agentPosition, Directions.Left);
+                return _worldInfo[agentPosition.x - 1, agentPosition.y];
         }
         return null;
     }
@@ -311,7 +287,7 @@ public class QTable
                 {
                     // Inicializamos los valores Q a un valor por defecto 0.0f.
                     qTable[new QState(states[option, 0], states[option, 1], states[option, 2], states[option, 3], distance, orientation)] = new float[4]
-                    /** 
+                    /**/   
                     {
                         states[option, 0] ? 0f : -100f,
                         states[option, 1] ? 0f : -100f,
@@ -383,7 +359,7 @@ public class QTable
             } while (!file.EndOfStream);
             file.Close(); // Al cerrar el fichero nos aseguramos que no queda ning�n dato por guardar
 
-            Debug.Log("QTable read");
+            Debug.Log("QTable loaded");
         }
         else
         {

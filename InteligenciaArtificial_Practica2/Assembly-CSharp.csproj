@@ -83,6 +83,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Navigation\Navigation.dll" />
+    <None Include="Assets\Scripts\GrupoA\Intrucciones y otros recursos\QTable_Version2_cs.txt" />
+    <None Include="Assets\Scripts\GrupoA\Intrucciones y otros recursos\QTable_Version3_cs.txt" />
+    <None Include="Assets\Scripts\GrupoA\Intrucciones y otros recursos\QTable_Version1_cs.txt" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

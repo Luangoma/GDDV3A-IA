@@ -30,7 +30,7 @@ public class QTrainer : IQMindTrainer
             {
                 AgentPosition = _world.RandomCell();
                 OtherPosition = _world.RandomCell();
-            } while (!(AgentPosition.Walkable && OtherPosition.Walkable && (AgentPosition != OtherPosition)));
+            } while (AgentPosition == OtherPosition);
             Return = 0; ReturnAveraged = 0;
             _initialized = true;
             OnEpisodeStarted?.Invoke(this, null);
