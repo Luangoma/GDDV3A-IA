@@ -88,13 +88,16 @@ public class QTable
     private float _distances;
     private int _distancesValues;
     private const int _distanceSegments = 3;
-    private const int _angleSegments = 8;
+    private int _angleSegments = 8;
 
     // Recompensas
     private const int _negativeReward = -100;   // Pierde
-    private const int _lowReward = -3;          // Sigue vivo pero se acerca
-    private const int _hightReward = 3;         // Mantiene distancia
-    private const int _positiveReward = 30;      // Se aleja
+    private const int _lowReward = -1;          // Sigue vivo pero se acerca
+    private const int _hightReward = 1;         // Mantiene distancia
+    private const int _positiveReward = 5;      // Se aleja
+
+    // Version del fichero
+    private int _episodesFile;
 
     #endregion
 
@@ -331,7 +334,7 @@ public class QTable
     internal void Save(string fileName = "QTable")
     {
         StreamWriter file = File.CreateText(path + fileName + ".csv");
-        string initialText = "";
+        string initialText = "Episodios del archivo;" + _episodesFile.ToString() + ";Distancias;" + _distances + ";Segmentos de angulos;" + _angleSegments;
         file.WriteLine(initialText);
 
         string keyValue;
@@ -362,9 +365,14 @@ public class QTable
         {
             qTable = new Dictionary<QState, float[]>();
             StreamReader file = new StreamReader(path + fileName + ".csv");
-            file.ReadLine();
-            string keyValue;
+            string keyValue = file.ReadLine();
             string[] data;
+            data = keyValue.Split(';');
+            _episodesFile = int.Parse(data[1]);
+            /**
+            _distances = int.Parse(data[3]);
+            _angleSegments = int.Parse(data[5]);
+            //*/
             CultureInfo culture = new CultureInfo("es-ES");
 
             do

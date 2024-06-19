@@ -23,18 +23,16 @@ Este escenario esta limitado a solamente los bordes para que el agente aprenda a
 Este escenario es parecido al escenario 5, pero con la variacion de que los espacios con los bordes respecto al mapa, son mayores para darle al agente margen de fallo.
 ### Escenario 7 - Redux
 Este escenario reducido se centra en el entrenamiento del agente bajo presion donde el perseguidor lo tiene siempre cerca.
-### Escenario 8 - Donut
-Este escenario es una mezcla de Bordes y Redux, de forma que se entrene ambas caracteristicas.
-### Escenario 9 - Laberinto
+### Escenario 8 - Laberinto
 Este escenario intenta simular un laberinto de forma 
-### Escenario 10 - Diagonales A1
+### Escenario 9 - Diagonales A1
 Este escenario fuerza al agente a aprender de estados donde este en esquinas en cierta orientacion
-### Escenario 11 - Diagonales A2
+### Escenario 10 - Diagonales A2
 Este escenario fuerza al agente a aprender de estados donde este en esquinas en cierta orientacion. 
 Es una ampliación de Diagonales A1.
-### Escenario 12 - Diagonales B1
+### Escenario 11 - Diagonales B1
 Este escenario fuerza al agente a aprender de estados donde este en esquinas en cierta orientacion
-### Escenario 13 - Diagonales B2
+### Escenario 12 - Diagonales B2
 Este escenario fuerza al agente a aprender de estados donde este en esquinas en cierta orientacion 
 Es una ampliación de Diagonales B1.
 
