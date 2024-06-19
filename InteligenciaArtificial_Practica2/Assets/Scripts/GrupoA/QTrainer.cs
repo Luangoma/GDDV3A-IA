@@ -3,7 +3,6 @@ using NavigationDJIA.World;
 using QMind;
 using QMind.Interfaces;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class QTrainer : IQMindTrainer
