@@ -70,7 +70,7 @@ public class QTrainer : IQMindTrainer
                 //Debug.Log("Es terminal: " + AgentPosition + ", " + OtherPosition);
                 CurrentEpisode++;
                 CurrentStep = 0;
-                if (CurrentEpisode % _episodesBetweenSaves == 0) _qTable.Save();
+                if (CurrentEpisode % _episodesBetweenSaves == 0) _qTable.Save(CurrentEpisode);
             }
             // 4 - Mover al jugador ((other)el jugador que es una ia, no el zombi)
             CellInfo[] ruta = _navigationAlgorithm.GetPath(OtherPosition, AgentPosition, 50);

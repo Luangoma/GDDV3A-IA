@@ -93,7 +93,7 @@ public class QTable
     private const int _negativeReward = -100;   // Pierde o terminal
     private const int _lowReward = -10;          // Sigue vivo pero se acerca
     private const int _hightReward = 0;         // Mantiene distancia
-    private const int _positiveReward = 100;      // Se aleja
+    private const int _positiveReward = 50;      // Se aleja
 
     // Version del fichero
     private int _episodesFile;
@@ -252,10 +252,10 @@ public class QTable
         int discreteAngle = DiscretizeAngle(angle);
         //Debug.Log($"Angulo real: {angle}. angulo discreto: {discreteAngle}.");
         // Creamos el nuevo estado dado la situacion actual
-        north = _worldInfo.NextCell(agentPosition,Directions.Up).Walkable;
-        east = _worldInfo.NextCell(agentPosition,Directions.Right).Walkable;
-        south = _worldInfo.NextCell(agentPosition,Directions.Down).Walkable;
-        west = _worldInfo.NextCell(agentPosition,Directions.Left).Walkable;
+        north = _worldInfo.NextCell(agentPosition, Directions.Up).Walkable;
+        east = _worldInfo.NextCell(agentPosition, Directions.Right).Walkable;
+        south = _worldInfo.NextCell(agentPosition, Directions.Down).Walkable;
+        west = _worldInfo.NextCell(agentPosition, Directions.Left).Walkable;
         return new QState(north, east, south, west, discreteDistance, discreteAngle);
     }
     /// <summary>
@@ -362,10 +362,11 @@ public class QTable
     /// Guarda la tabla de valores en un fichero CSV.
     /// </summary>
     /// <param name="fileName"></param>
-    internal void Save(string fileName = "QTable")
+    internal void Save(int CurrentEpisode, string fileName = "QTable")
     {
         StreamWriter file = File.CreateText(path + fileName + ".csv");
-        string initialText = "Episodios del archivo;" + _episodesFile.ToString() + ";Distancias;" + _distancesValues + ";Segmentos de angulos;" + _angleSegments;
+        int newEpisodesFile = _episodesFile + CurrentEpisode;
+        string initialText = "Episodios del archivo;" + newEpisodesFile + ";Distancias;" + _distancesValues + ";Segmentos de angulos;" + _angleSegments;
         file.WriteLine(initialText);
 
         string keyValue;
