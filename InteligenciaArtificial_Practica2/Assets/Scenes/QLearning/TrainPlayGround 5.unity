@@ -409,14 +409,14 @@ MonoBehaviour:
   other: {fileID: 1518200256}
   qLearningTrainerClass: QTrainer, Assembly-CSharp, Version=0.0.0.0, Culture=neutral,
     PublicKeyToken=null
-  showSimulation: 1
+  showSimulation: 0
   agentSpeed: 3
   train: 1
   algorithmParams:
     alpha: 0.2
-    epsilon: 0.85
+    epsilon: 0.3
     gamma: 0.9
-    episodes: 20000
+    episodes: 5000
     maxSteps: -1
     episodesBetweenSaves: 100
 --- !u!4 &430024629
@@ -463,8 +463,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 815002462}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.4101, y: 0, z: 3.4992}
-  m_LocalScale: {x: 26.5, y: 1, z: 2.6}
+  m_LocalPosition: {x: 1.5, y: 0, z: 1.5}
+  m_LocalScale: {x: 34, y: 1, z: 3.4}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 414741301}
@@ -1144,7 +1144,7 @@ Mesh:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: pb_Mesh99558
+  m_Name: pb_Mesh94650
   serializedVersion: 11
   m_SubMeshes:
   - serializedVersion: 2

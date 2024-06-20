@@ -17,9 +17,11 @@ public class QTrainer : IQMindTrainer
     public event EventHandler OnEpisodeFinished;
     public bool _initialized = false;
     private WorldInfo _world;
-    private QTable qTable;
+    private QTable _qTable;
     private INavigationAlgorithm _navigationAlgorithm;
     private int _episodesBetweenSaves;
+    private float _rewards;
+    private int _rewardsCount;
 
     public void DoStep(bool train)
     {
@@ -37,27 +39,29 @@ public class QTrainer : IQMindTrainer
         else
         {
             // 1 - Identificar estado actual
-            QTable.QState estadoInicial = qTable.GetState(AgentPosition, OtherPosition);
+            QTable.QState estadoInicial = _qTable.GetState(AgentPosition, OtherPosition);
             int oldDistance = (int)AgentPosition.Distance(OtherPosition, CellInfo.DistanceType.Manhattan);
             // 2 - Elegir accion del agente
-            int accion = qTable.GetTrainingAction(estadoInicial, CurrentEpisode);
+            int accion = _qTable.GetTrainingAction(estadoInicial, CurrentEpisode);
             // 3 - Mover al agente
-            AgentPosition = qTable.GetAgentMovement(accion, AgentPosition);
-            // 4 - Mover al jugador ((other)el jugador que es una ia, no el zombi)
-            CellInfo[] ruta = _navigationAlgorithm.GetPath(OtherPosition, AgentPosition, 50);
-            if (ruta != null && ruta.Length > 0)
-            { OtherPosition = ruta[0]; }
+            AgentPosition = _qTable.GetAgentMovement(accion, AgentPosition);
             // 5 - Identificar nuevo estado
-            QTable.QState estadoNuevo = qTable.GetState(AgentPosition, OtherPosition);
+            QTable.QState estadoNuevo = _qTable.GetState(AgentPosition, OtherPosition);
             int newDistance = (int)AgentPosition.Distance(OtherPosition, CellInfo.DistanceType.Manhattan);
             // 6 - Elegir recompensa
-            bool atrapado = AgentPosition.Equals(OtherPosition);
+            //bool atrapado = AgentPosition.Equals(OtherPosition);
+            bool atrapado = AgentPosition.Distance(OtherPosition, CellInfo.DistanceType.Manhattan) <= 1;
             bool ilegal = !AgentPosition.Walkable;
-            float recompensa = qTable.GetReward(oldDistance, newDistance, ilegal, atrapado);
-            ReturnAveraged = recompensa;
-            Return += recompensa;
+            float recompensa = _qTable.GetReward(oldDistance, newDistance, ilegal, atrapado);
+            _rewards += recompensa;
+            _rewardsCount++;
+            ReturnAveraged = _rewards / _rewardsCount;
+            Return = recompensa;
             // 7 - Actualizar tablaQ
-            qTable.UpdateWithReward(estadoInicial, estadoNuevo, accion, recompensa);
+            if (train)
+            {
+                _qTable.UpdateWithReward(estadoInicial, estadoNuevo, accion, recompensa);
+            }
             // 8 - Comprobar si hay que terminar el episodio
             if (atrapado || ilegal)
             {
@@ -66,23 +70,26 @@ public class QTrainer : IQMindTrainer
                 //Debug.Log("Es terminal: " + AgentPosition + ", " + OtherPosition);
                 CurrentEpisode++;
                 CurrentStep = 0;
-                if (CurrentEpisode % _episodesBetweenSaves == 0) qTable.Save();
+                if (CurrentEpisode % _episodesBetweenSaves == 0) _qTable.Save();
             }
+            // 4 - Mover al jugador ((other)el jugador que es una ia, no el zombi)
+            CellInfo[] ruta = _navigationAlgorithm.GetPath(OtherPosition, AgentPosition, 50);
+            if (ruta != null && ruta.Length > 0) OtherPosition = ruta[0];
             CurrentStep++;
         }
-        Debug.Log("QMindTrainer: DoStep");
+        //Debug.Log("QMindTrainer: DoStep");
     }
 
     public void Initialize(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm)
     {
         // Asignamos las variables de inicializacion
         _world = worldInfo;
-        qTable = new QTable(qMindTrainerParams, worldInfo);
+        _qTable = new QTable(qMindTrainerParams, worldInfo);
         _episodesBetweenSaves = qMindTrainerParams.episodesBetweenSaves;
         _navigationAlgorithm = navigationAlgorithm;
         _navigationAlgorithm.Initialize(worldInfo);
         CurrentEpisode = 0;
-        qTable.Load();
+        _qTable.Load();
         Debug.Log("QMindTrainer: initialized");
     }
 }
