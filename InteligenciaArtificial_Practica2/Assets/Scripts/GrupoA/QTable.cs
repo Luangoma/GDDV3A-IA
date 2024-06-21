@@ -347,10 +347,11 @@ public class QTable
     /// <param name="fileName"></param>
     internal void Save(int episodesCount, string fileName = "QTable")
     {
-        StreamWriter file = File.CreateText(path + fileName + ".csv");
+        StreamWriter fileMain = File.CreateText(path + fileName + ".csv");
         int newEpisodesFile = _episodesFile + episodesCount;
+        StreamWriter fileCopy = File.CreateText(path + "/QTable_Backups/" + fileName + "_" + newEpisodesFile + ".csv");
         string initialText = "Episodios del archivo;" + newEpisodesFile + ";Distancias;" + _distancesValues + ";Segmentos de angulos;" + _angleSegments;
-        file.WriteLine(initialText);
+        fileMain.WriteLine(initialText); fileCopy.WriteLine(initialText);
 
         string keyValue;
         foreach (var keys in _qTable.Keys)
@@ -363,9 +364,9 @@ public class QTable
             {
                 keyValue += ";" + dataCollection[data].ToString();
             }
-            file.WriteLine(keyValue); // Lo mismo que cuando escribimos por consola
+            fileMain.WriteLine(keyValue); fileCopy.WriteLine(keyValue); // Lo mismo que cuando escribimos por consola
         }
-        file.Close(); // Al cerrar el fichero nos aseguramos que no queda ningun dato por guardar
+        fileMain.Close(); fileCopy.Close(); // Al cerrar el fichero nos aseguramos que no queda ningun dato por guardar
 
         //Debug.Log($"QTable saved. DataPath: {Application.dataPath}/Scripts/GrupoA/");
         Debug.Log($"QTable saved in '{path}'");
