@@ -1,7 +1,6 @@
 ﻿using NavigationDJIA.World;
 using QMind;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -35,8 +34,17 @@ public class QTable
             this.orientation = orientation;
         }
 
-        #region Comparadores
+        #region Overrides
 
+        /// <summary>
+        /// Metodo para devolver los valores guardados.
+        /// </summary>
+        /// <returns>Cadena con los valores separados por ';'.</returns>
+        public override string ToString()
+        {
+            List<string> list = new List<string>() { up.ToString(), right.ToString(), down.ToString(), left.ToString(), distance.ToString(), orientation.ToString() };
+            return string.Join(";", list.ToArray());
+        }
         /// <summary>
         /// Metodo de comparacion por los valores guardados.
         /// </summary>
@@ -56,15 +64,14 @@ public class QTable
         public override int GetHashCode()
         {
             // Valores enteros al azar
-            int hash1 = 17, hash2 = 31;
-            int hash = hash1;
-            hash = hash * hash2 + up.GetHashCode();
-            hash = hash * hash2 + down.GetHashCode();
-            hash = hash * hash2 + right.GetHashCode();
-            hash = hash * hash2 + left.GetHashCode();
-            hash = hash * hash2 + distance.GetHashCode();
-            hash = hash * hash2 + orientation.GetHashCode();
-            return hash;
+            int hash1 = 15, hash2 = 30;
+            hash1 = hash1 * hash2 + up.GetHashCode();
+            hash1 = hash1 * hash2 + down.GetHashCode();
+            hash1 = hash1 * hash2 + right.GetHashCode();
+            hash1 = hash1 * hash2 + left.GetHashCode();
+            hash1 = hash1 * hash2 + distance.GetHashCode();
+            hash1 = hash1 * hash2 + orientation.GetHashCode();
+            return hash1;
         }
 
         #endregion
@@ -91,9 +98,9 @@ public class QTable
 
     // Recompensas
     private const int _negativeReward = -100;   // Pierde o terminal
-    private const int _lowReward = -10;          // Sigue vivo pero se acerca
+    private const int _lowReward = -10;         // Sigue vivo pero se acerca
     private const int _hightReward = 0;         // Mantiene distancia
-    private const int _positiveReward = 50;      // Se aleja
+    private const int _positiveReward = 50;     // Se aleja
 
     // Version del fichero
     private int _episodesFile;
@@ -308,7 +315,7 @@ public class QTable
     /// <summary>
     /// Se inicializa una tabla con los estados inicializados y los array de valores vacios, es decir, 0.0f.
     /// </summary>
-    internal void Init()
+    internal void Init(bool pretrain = false)
     {
         const int filas = 16, columnas = 4;
         bool[,] states = new bool[filas, columnas];
@@ -327,15 +334,14 @@ public class QTable
                 for (int orientation = 0; orientation < _angleSegments; orientation++)
                 {
                     // Inicializamos los valores Q a un valor por defecto 0.0f.
-                    _qTable[new QState(states[option, 0], states[option, 1], states[option, 2], states[option, 3], distance, orientation)] = new float[4]
-                    /**/
+                    _qTable[new QState(states[option, 0], states[option, 1], states[option, 2], states[option, 3], distance, orientation)] =
+                        pretrain ? new float[4] : new float[4]
                     {
                         states[option, 0] ? 0f : _negativeReward,
                         states[option, 1] ? 0f : _negativeReward,
                         states[option, 2] ? 0f : _negativeReward,
                         states[option, 3] ? 0f : _negativeReward
-                    }//*/
-                    ;
+                    };
                 }
             }
         }
@@ -344,32 +350,22 @@ public class QTable
     /// <summary>
     /// Guarda la tabla de valores en un fichero CSV.
     /// </summary>
-    /// <param name="fileName"></param>
-    internal void Save(int episodesCount, string fileName = "QTable")
+    /// <param name="nameMain"></param>
+    internal void Save(int episodesCount = 0, string nameMain = "QTable", bool copy = true, string nameCopy = "QTable")
     {
-        StreamWriter fileMain = File.CreateText(path + fileName + ".csv");
+        // Datos y comienzo de linea
         int newEpisodesFile = _episodesFile + episodesCount;
-        StreamWriter fileCopy = File.CreateText(path + "/QTable_Backups/" + fileName + "_" + newEpisodesFile + ".csv");
-        string initialText = "Episodios del archivo;" + newEpisodesFile + ";Distancias;" + _distancesValues + ";Segmentos de angulos;" + _angleSegments;
-        fileMain.WriteLine(initialText); fileCopy.WriteLine(initialText);
-
-        string keyValue;
+        string keyValue = "Episodios del archivo;" + newEpisodesFile + ";Distancias;" + _distancesValues + ";Segmentos de angulos;" + _angleSegments+"\n";
+        // Rutas y nombres
+        string pathMain = path + nameMain + ".csv", pathCopy = path + "QTable_Backups/" + nameCopy + "_" + newEpisodesFile + ".csv";
         foreach (var keys in _qTable.Keys)
         {
-            // Claves
-            keyValue = keys.up + ";" + keys.right + ";" + keys.down + ";" + keys.left + ";" + keys.distance + ";" + keys.orientation;
-            // Valores
-            float[] dataCollection = _qTable[keys];
-            for (var data = 0; data < dataCollection.Length; data++)
-            {
-                keyValue += ";" + dataCollection[data].ToString();
-            }
-            fileMain.WriteLine(keyValue); fileCopy.WriteLine(keyValue); // Lo mismo que cuando escribimos por consola
+            keyValue += keys.ToString() + ";" + string.Join(";", _qTable[keys]) + "\n";
         }
-        fileMain.Close(); fileCopy.Close(); // Al cerrar el fichero nos aseguramos que no queda ningun dato por guardar
-
-        //Debug.Log($"QTable saved. DataPath: {Application.dataPath}/Scripts/GrupoA/");
-        Debug.Log($"QTable saved in '{path}'");
+        // Creacion de fichero de salida principal y fichero de respaldo
+        using (StreamWriter fileMain = File.CreateText(pathMain)) { fileMain.Write(keyValue); }
+        if (copy) { using (StreamWriter fileCopy = File.CreateText(pathCopy)) { fileCopy.Write(keyValue); } }
+        Debug.Log($"QTable saved in '{path}'.");
     }
     /// <summary>
     /// Lee el fichero CSV y lo carga en la tabla de valores.
@@ -380,38 +376,26 @@ public class QTable
         if (File.Exists(path + fileName + ".csv"))
         {
             _qTable = new Dictionary<QState, float[]>();
-            StreamReader file = new StreamReader(path + fileName + ".csv");
-            string keyValue = file.ReadLine();
-            string[] data;
-            data = keyValue.Split(';');
-            _episodesFile = int.Parse(data[1]);
-            /**
-            _distances = int.Parse(data[3]);
-            _angleSegments = int.Parse(data[5]);
-            //*/
-            CultureInfo culture = new CultureInfo("es-ES");
-
-            do
+            using (StreamReader file = new StreamReader(path + fileName + ".csv"))
             {
-                keyValue = file.ReadLine();
-                data = keyValue.Split(';');
-                QState temporalState = new QState(bool.Parse(data[0]), bool.Parse(data[1]), bool.Parse(data[2]), bool.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]));
-                List<float> dataCollection = new List<float>
-                    {
-                         float.Parse(data[data.Length-4], culture),
-                         float.Parse(data[data.Length-3], culture),
-                         float.Parse(data[data.Length-2], culture),
-                         float.Parse(data[data.Length-1], culture)
-                    };
-                _qTable[temporalState] = dataCollection.ToArray();
-            } while (!file.EndOfStream);
-            file.Close(); // Al cerrar el fichero nos aseguramos que no queda ning�n dato por guardar
-
-            Debug.Log("QTable read");
+                string keyValue = file.ReadLine();
+                string[] data = keyValue.Split(';');
+                //Otras variables por si se quiere continar con los mismos parametros de la tabla escrita
+                _episodesFile = int.Parse(data[1]); // _distances = int.Parse(data[3]); _angleSegments = int.Parse(data[5]); 
+                do
+                {
+                    keyValue = file.ReadLine();
+                    data = keyValue.Split(';');
+                    QState temporalState = new QState(bool.Parse(data[0]), bool.Parse(data[1]), bool.Parse(data[2]), bool.Parse(data[3]), int.Parse(data[4]), int.Parse(data[5]));
+                    _qTable[temporalState] = new float[4]
+                    { float.Parse(data[data.Length - 4]), float.Parse(data[data.Length - 3]), float.Parse(data[data.Length - 2]), float.Parse(data[data.Length - 1]) };
+                } while (!file.EndOfStream);
+            }
+            Debug.Log("QTable read.");
         }
         else
         {
-            Debug.Log($"Error en la lectura de la tabla. El archivo {fileName}.csv no existe.");
+            Debug.Log($"QTable read failed. El archivo '{fileName}.csv' no existe.");
         }
     }
 
