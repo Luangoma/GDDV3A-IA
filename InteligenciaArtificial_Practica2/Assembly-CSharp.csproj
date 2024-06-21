@@ -82,6 +82,7 @@
     <Compile Include="Assets\Scripts\GrupoA\QTrainer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Assets\Scripts\GrupoA\Intrucciones y otros recursos\Dudas.txt" />
     <None Include="Assets\Navigation\Navigation.dll" />
     <None Include="Assets\Scripts\GrupoA\Intrucciones y otros recursos\QTable_Version2_cs.txt" />
     <None Include="Assets\Scripts\GrupoA\Intrucciones y otros recursos\QTable_Version3_cs.txt" />

@@ -72,9 +72,9 @@ public class QTrainer : IQMindTrainer
                 //Debug.Log("Es terminal: " + AgentPosition + ", " + OtherPosition);
                 CurrentEpisode++;
                 CurrentStep = 0;
-                if (CurrentEpisode % _params.episodesBetweenSaves == 0) _qTable.Save(CurrentEpisode);
+                if (CurrentEpisode % _params.episodesBetweenSaves == 0 && train) _qTable.Save(CurrentEpisode);
             }
-            // 8 - Mover al jugador ((other)el jugador que es una ia, no el zombi)
+            // 8 - Mover al jugador (Player aka Other)
             CellInfo[] ruta = _navigationAlgorithm.GetPath(OtherPosition, AgentPosition, 50);
             if (ruta != null && ruta.Length > 0) OtherPosition = ruta[0];
             CurrentStep++;
@@ -84,13 +84,14 @@ public class QTrainer : IQMindTrainer
 
     public void Initialize(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm)
     {
-        // Asignamos las variables de inicializacion
+        // Asignamos las variables
         _params = qMindTrainerParams;
         _world = worldInfo;
         _navigationAlgorithm = navigationAlgorithm;
+        // Inicializacion
         _qTable = new QTable(_params, _world);
-        _navigationAlgorithm.Initialize(_world);
         _qTable.Load();
+        _navigationAlgorithm.Initialize(_world);
         Debug.Log("QMindTrainer: initialized");
     }
 }
