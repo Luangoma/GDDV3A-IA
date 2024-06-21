@@ -186,21 +186,6 @@ public class QTable
         return (int)(realAngle / (360 / _angleSegments));
     }
     /// <summary>
-    /// Funcion que normaliza los episodios a la funcion de e^(-x). (Funcion decreciente).
-    /// </summary>
-    /// <param name="value"></param>
-    /// <param name="minValue"></param>
-    /// <param name="maxValue"></param>
-    /// <returns>Valor normalizado entre los dos parametros.</returns>
-    private float Normalize(float value, float minValue = 0, float maxValue = 1)
-    {
-        if (minValue == maxValue)
-        {
-            return value;
-        }
-        return (value - minValue) / (maxValue - minValue);
-    }
-    /// <summary>
     /// Devuelve el valor con la maxima recompensa de un estado. Puede no ser la maxima dependiendo de la entropia (Epsilon).
     /// </summary>
     /// <param name="oldDist"></param>
@@ -263,14 +248,12 @@ public class QTable
     /// </summary>
     /// <param name="estado"></param>
     /// <returns>Indice de una accion a entrenar.</returns>
-    public int GetTrainingAction(QState estado, int CurrentEpisode = 1)
+    public int GetTrainingAction(QState estado)
     {
         // 1 - Elegir nº random entre 0 y 1
         float value = UnityEngine.Random.Range(0f, 1f);
         // 2 - Si epsilon es mayor al numero, accion aleatoria, si no, la opcion valor amas alto
         if (_params.epsilon > value) // Usando el epsilon proporcionado - entrenamiento manual
-        //Debug.Log(Mathf.Exp(-Normalize(CurrentEpisode, 0, _params.episodes)));
-        //if (Mathf.Exp(-Normalize(CurrentEpisode, 0, _params.episodes)) > value) // Epsilon calculado - entrenamiento automatico
         {
             return UnityEngine.Random.Range(0, 4);
         }
@@ -362,10 +345,10 @@ public class QTable
     /// Guarda la tabla de valores en un fichero CSV.
     /// </summary>
     /// <param name="fileName"></param>
-    internal void Save(int CurrentEpisode, string fileName = "QTable")
+    internal void Save(int episodesCount, string fileName = "QTable")
     {
         StreamWriter file = File.CreateText(path + fileName + ".csv");
-        int newEpisodesFile = _episodesFile + CurrentEpisode;
+        int newEpisodesFile = _episodesFile + episodesCount;
         string initialText = "Episodios del archivo;" + newEpisodesFile + ";Distancias;" + _distancesValues + ";Segmentos de angulos;" + _angleSegments;
         file.WriteLine(initialText);
 

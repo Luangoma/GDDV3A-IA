@@ -19,7 +19,8 @@ public class QTrainer : IQMindTrainer
     private WorldInfo _world;
     private QTable _qTable;
     private INavigationAlgorithm _navigationAlgorithm;
-    private int _episodesBetweenSaves;
+    private QMindTrainerParams _params;
+    private bool autoEpsilon = false;
     private float _rewards;
     private int _rewardsCount;
 
@@ -34,6 +35,7 @@ public class QTrainer : IQMindTrainer
             } while (AgentPosition == OtherPosition);
             Return = 0; ReturnAveraged = 0;
             _initialized = true;
+            if (autoEpsilon) { _params.epsilon = Mathf.Exp(-CurrentEpisode / (float)_params.episodes); } // Epsilon calculado - entrenamiento automatico
             OnEpisodeStarted?.Invoke(this, null);
         }
         else
@@ -42,13 +44,13 @@ public class QTrainer : IQMindTrainer
             QTable.QState estadoInicial = _qTable.GetState(AgentPosition, OtherPosition);
             int oldDistance = (int)AgentPosition.Distance(OtherPosition, CellInfo.DistanceType.Manhattan);
             // 2 - Elegir accion del agente
-            int accion = _qTable.GetTrainingAction(estadoInicial, CurrentEpisode);
+            int accion = _qTable.GetTrainingAction(estadoInicial);
             // 3 - Mover al agente
             AgentPosition = _qTable.GetAgentMovement(accion, AgentPosition);
-            // 5 - Identificar nuevo estado
+            // 4 - Identificar nuevo estado
             QTable.QState estadoNuevo = _qTable.GetState(AgentPosition, OtherPosition);
             int newDistance = (int)AgentPosition.Distance(OtherPosition, CellInfo.DistanceType.Manhattan);
-            // 6 - Elegir recompensa
+            // 5 - Elegir recompensa
             //bool atrapado = AgentPosition.Equals(OtherPosition);
             bool atrapado = AgentPosition.Distance(OtherPosition, CellInfo.DistanceType.Manhattan) <= 1;
             bool ilegal = !AgentPosition.Walkable;
@@ -57,12 +59,12 @@ public class QTrainer : IQMindTrainer
             _rewardsCount++;
             ReturnAveraged = _rewards / _rewardsCount;
             Return = recompensa;
-            // 7 - Actualizar tablaQ
+            // 6 - Actualizar tablaQ
             if (train)
             {
                 _qTable.UpdateWithReward(estadoInicial, estadoNuevo, accion, recompensa);
             }
-            // 8 - Comprobar si hay que terminar el episodio
+            // 7 - Comprobar si hay que terminar el episodio
             if (atrapado || ilegal)
             {
                 OnEpisodeFinished?.Invoke(this, null);
@@ -70,9 +72,9 @@ public class QTrainer : IQMindTrainer
                 //Debug.Log("Es terminal: " + AgentPosition + ", " + OtherPosition);
                 CurrentEpisode++;
                 CurrentStep = 0;
-                if (CurrentEpisode % _episodesBetweenSaves == 0) _qTable.Save(CurrentEpisode);
+                if (CurrentEpisode % _params.episodesBetweenSaves == 0) _qTable.Save(CurrentEpisode);
             }
-            // 4 - Mover al jugador ((other)el jugador que es una ia, no el zombi)
+            // 8 - Mover al jugador ((other)el jugador que es una ia, no el zombi)
             CellInfo[] ruta = _navigationAlgorithm.GetPath(OtherPosition, AgentPosition, 50);
             if (ruta != null && ruta.Length > 0) OtherPosition = ruta[0];
             CurrentStep++;
@@ -83,12 +85,11 @@ public class QTrainer : IQMindTrainer
     public void Initialize(QMindTrainerParams qMindTrainerParams, WorldInfo worldInfo, INavigationAlgorithm navigationAlgorithm)
     {
         // Asignamos las variables de inicializacion
+        _params = qMindTrainerParams;
         _world = worldInfo;
-        _qTable = new QTable(qMindTrainerParams, worldInfo);
-        _episodesBetweenSaves = qMindTrainerParams.episodesBetweenSaves;
         _navigationAlgorithm = navigationAlgorithm;
-        _navigationAlgorithm.Initialize(worldInfo);
-        CurrentEpisode = 0;
+        _qTable = new QTable(_params, _world);
+        _navigationAlgorithm.Initialize(_world);
         _qTable.Load();
         Debug.Log("QMindTrainer: initialized");
     }
