@@ -1,3 +1,5 @@
+/////////////////////// QTable.cs ///////////////////////
+
 using NavigationDJIA.World;
 using QMind;
 using System.Collections.Generic;
@@ -184,7 +186,7 @@ public class QTable
     }
     /// <summary>
     /// Devuelve el angulo discretizado en uno de los cuadrantes segmentados (_angleSegments).
-    /// Con el valor estandar de _angleSegments (8) 
+    /// Valor estandar de _angleSegments (8).
     /// </summary>
     /// <param name="realAngle"></param>
     /// <returns>Indice del cuadrante del 0 al 7 corresponde, cada porcion de 45º corresponde con un cuadrante.</returns>
@@ -315,6 +317,7 @@ public class QTable
     /// <summary>
     /// Se inicializa una tabla con los estados inicializados y los array de valores vacios, es decir, 0.0f.
     /// </summary>
+    /// <param name="pretrain"></param>
     internal void Init(bool pretrain = false)
     {
         const int filas = 16, columnas = 4;
@@ -350,7 +353,10 @@ public class QTable
     /// <summary>
     /// Guarda la tabla de valores en un fichero CSV.
     /// </summary>
+    /// <param name="episodesCount"></param>
     /// <param name="nameMain"></param>
+    /// <param name="copy"></param>
+    /// <param name="nameCopy"></param>
     internal void Save(int episodesCount = 0, string nameMain = "QTable", bool copy = true, string nameCopy = "QTable")
     {
         // Datos y comienzo de linea
@@ -404,34 +410,7 @@ public class QTable
 }
 
 
-
-using NavigationDJIA.World;
-using QMind.Interfaces;
-using UnityEngine;
-
-public class QAgent : IQMind
-{
-    private QTable _qTable;
-    public CellInfo GetNextStep(CellInfo currentPosition, CellInfo otherPosition)
-    {
-        // 1 - Identificar estado actual
-        QTable.QState estadoInicial = _qTable.GetState(currentPosition, otherPosition);
-        // 2 - Elegir accion del agente
-        int accion = _qTable.GetAction(estadoInicial);
-        // 3 - Mover al agente
-        return _qTable.GetAgentMovement(accion, currentPosition);
-    }
-
-    public void Initialize(WorldInfo worldInfo)
-    {
-        _qTable = new QTable(worldInfo);
-        _qTable.Load();
-        Debug.Log("QMindAgent: initialized");
-    }
-}
-
-
-
+/////////////////////// QTrainer.cs ///////////////////////
 
 using NavigationDJIA.Interfaces;
 using NavigationDJIA.World;
@@ -531,3 +510,30 @@ public class QTrainer : IQMindTrainer
     }
 }
 
+
+/////////////////////// QAgent.cs ///////////////////////
+
+using NavigationDJIA.World;
+using QMind.Interfaces;
+using UnityEngine;
+
+public class QAgent : IQMind
+{
+    private QTable _qTable;
+    public CellInfo GetNextStep(CellInfo currentPosition, CellInfo otherPosition)
+    {
+        // 1 - Identificar estado actual
+        QTable.QState estadoInicial = _qTable.GetState(currentPosition, otherPosition);
+        // 2 - Elegir accion del agente
+        int accion = _qTable.GetAction(estadoInicial);
+        // 3 - Mover al agente
+        return _qTable.GetAgentMovement(accion, currentPosition);
+    }
+
+    public void Initialize(WorldInfo worldInfo)
+    {
+        _qTable = new QTable(worldInfo);
+        _qTable.Load();
+        Debug.Log("QMindAgent: initialized");
+    }
+}
